@@ -14,10 +14,11 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('password');
             $table->timestamp('email_verified_at')->nullable();
             $table->integer('role')->default(2);
-            $table->string('phone');
             $table->string('country_code');
+            $table->string('phone');
             $table->bigInteger('created_by')->nullable();
             $table->bigInteger('updated_by')->nullable();
             $table->bigInteger('deleted_by')->nullable();

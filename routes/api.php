@@ -3,6 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\api\v1\LanguageController;
+use App\Http\Controllers\api\v1\UserController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,6 +17,31 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
+
+//test api
+Route::get('/', function (Request $request) {
+    return response()->json([
+        'msg' => "بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ"
+    ]);
+});
+
+Route::group(['prefix' => 'v1'], function () {
+    Route::group(['prefix' => 'users'], function () {
+        Route::get('/', [UserController::class, 'index']);
+        Route::post('/', [UserController::class, 'store']);
+        Route::get('/{user}', [UserController::class, 'show']);
+        Route::patch('/{id}', [UserController::class, 'update']);
+        Route::delete('/', [UserController::class, 'destroy']);
+    });
+
+    Route::group(['prefix' => 'languages'], function () {
+        Route::get('/', [LanguageController::class, 'index']);
+        Route::post('/', [LanguageController::class, 'store']);
+        Route::get('/{language}', [UserController::class, 'show']);
+        Route::patch('/{id}', [LanguageController::class, 'update']);
+        Route::delete('/', [LanguageController::class, 'destroy']);
+    });
 });

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
@@ -21,6 +23,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'phone',
+        'country_code',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'deleted_at',
     ];
 
     /**
@@ -42,4 +51,34 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->BelongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->BelongsTo(User::class, 'updated_by');
+    }
+
+    public function deletedBy(): BelongsTo
+    {
+        return $this->BelongsTo(User::class, 'deleted_by');
+    }
+
+    public function createdLanguages(): HasMany
+    {
+        return $this->hasMany(Language::class, 'created_by');
+    }
+
+    public function updatedLanguages(): HasMany
+    {
+        return $this->hasMany(Language::class, 'updated_by');
+    }
+
+    public function deletedLanguages(): HasMany
+    {
+        return $this->hasMany(Language::class, 'deleted_by');
+    }
 }
