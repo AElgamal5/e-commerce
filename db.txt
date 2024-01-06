@@ -1,0 +1,263 @@
+Table users {
+  id int [pk]
+  name str
+  email str
+  password str
+  role int [note: '0:admin, 1:employee, 2:customer']
+  phone_number str
+  country_code str
+  image str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table languages {
+  id int [pk]
+  name str
+  code str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table sizes {
+  id int [pk]
+  code str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table colors {
+  id int [pk]
+  code str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table colors_translations{
+  id int [pk]
+  color_id int [pk, ref: - colors.id]
+  language_id int [pk, ref: - languages.id]
+  name str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table states{
+  id int [pk]
+  delivery_fess float
+
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table states_translations{
+  id int [pk]
+  state_id int [ref: - states.id]
+  language_id int [ref: - languages.id]
+  name str
+  description text
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table categories{
+  id int [pk]
+  image str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table categories_translations{
+  id int [pk]
+  category_id int [ref: - categories.id]
+  language_id int [ref: - languages.id]
+  name str
+  description str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table tags{
+  id int [pk]
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table tags_translations{
+  id int [pk]
+  tag_id int [ref: - tags.id]
+  language_id int [ref: - languages.id]
+  name str
+  description str
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table products {
+  id int [pk]
+  status int
+  year int
+  price float
+  current_quantity int
+  initial_quantity int
+  category_id int [ref: - categories.id]
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table products_translations {
+  id int [pk]
+  product_id int [ref:- products.id]
+  language_id int [ref: - languages.id]
+  name str
+  description str
+
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table products_tags{
+  id int [pk]
+  product_id int [ref:> products.id]
+  tag_id int [ref:> tags.id]
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+
+Table products_quantities {
+  id int [pk]
+  product_id int [ref:- products.id]
+  color_id int [ref: -  colors.id]
+  size_id int [ref: - sizes.id]
+  initial_quantity int
+  current_quantity int
+  image str
+
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table orders{
+  id int [pk]
+  status int
+  total_amount float
+  inside bool
+  state_id int [ref: > states.id]
+  address string
+  customer_id int [ref: > users.id]
+  paid_date date
+  delivered_date date
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table orders_contents{
+  id int [pk]
+  order_id int [ref: > orders.id]
+  product_quantity_id int [ref: > products_quantities.id]
+  required_quantity int
+
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+Table contact_us{
+  id int [pk]
+  name str
+  email str
+  title str
+  phone str
+  country_code str
+  description text
+  
+  // created_at timestamp
+  // updated_at timestamp
+}
+
+
+Table advertisements{
+  id int [pk]
+  link str
+  image str
+  status int
+  
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
+//adding package [products]
+
+ 
