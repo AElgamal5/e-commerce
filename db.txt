@@ -142,6 +142,8 @@ Table products {
   status int
   year int
   price float
+  discount_type int
+  discount_value float
   current_quantity int
   initial_quantity int
   category_id int [ref: - categories.id]
@@ -198,6 +200,20 @@ Table products_quantities {
   // deleted_at timestamp
 }
 
+Table coupons{
+  id in [pk]
+  quantity int
+  used int
+  expire_date date
+
+  // created_by int [ref: > users.id]
+  // updated_by int [ref: > users.id]
+  // deleted_by int [ref: > users.id]
+  // created_at timestamp
+  // updated_at timestamp
+  // deleted_at timestamp
+}
+
 Table orders{
   id int [pk]
   status int
@@ -206,6 +222,7 @@ Table orders{
   state_id int [ref: > states.id]
   address string
   customer_id int [ref: > users.id]
+  coupon_id int [ref: > coupons.id]
   paid_date date
   delivered_date date
   // created_by int [ref: > users.id]
@@ -257,6 +274,7 @@ Table advertisements{
   // updated_at timestamp
   // deleted_at timestamp
 }
+
 
 //adding package [products]
 

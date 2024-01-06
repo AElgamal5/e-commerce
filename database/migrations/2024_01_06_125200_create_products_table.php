@@ -15,9 +15,10 @@ return new class extends Migration {
             $table->integer('status')->default(1);
             $table->integer('year')->default(date("Y"));
             $table->double('price');
+            $table->integer('discount_type')->nullable();
+            $table->double('discount_value')->nullable();
             $table->integer('initial_quantity');
             $table->integer('current_quantity');
-            $table->bigInteger('category_id');
 
             $table->bigInteger('created_by');
             $table->bigInteger('updated_by')->nullable();

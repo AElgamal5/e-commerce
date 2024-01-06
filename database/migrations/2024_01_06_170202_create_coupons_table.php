@@ -10,17 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('coupons', function (Blueprint $table) {
             $table->id();
-            $table->integer('status')->default(1);
-            $table->double('total_amount');
-            $table->boolean('inside');
-            $table->bigInteger('state_id')->nullable();
-            $table->text('address');
-            $table->bigInteger('customer_id');
-            $table->dateTime('paid_date')->nullable();
-            $table->dateTime('delivered_date')->nullable();
-            $table->bigInteger('coupon_id')->nullable();
+            $table->integer('quantity')->nullable();
+            $table->integer('used')->nullable();
+            $table->dateTime('expire_date');
 
             $table->bigInteger('created_by');
             $table->bigInteger('updated_by')->nullable();
@@ -35,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('coupons');
     }
 };
