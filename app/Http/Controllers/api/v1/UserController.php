@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 
+use App\Models\User;
+
 use App\Filters\v1\UserFilter;
+
 use App\Http\Resources\v1\UserResource;
 use App\Http\Resources\v1\UserCollection;
+
 use App\Http\Requests\v1\User\IndexUserRequest;
 use App\Http\Requests\v1\User\StoreUserRequest;
 use App\Http\Requests\v1\User\UpdateUserRequest;

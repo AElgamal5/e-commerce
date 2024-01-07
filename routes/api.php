@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\v1\LanguageController;
 use App\Http\Controllers\api\v1\UserController;
 use App\Http\Controllers\api\v1\AuthController;
+use App\Http\Controllers\api\v1\SizeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,14 @@ Route::group(['prefix' => 'v1'], function () {
             Route::get('/{language}', [LanguageController::class, 'show']);
             Route::patch('/{language}', [LanguageController::class, 'update'])->middleware('update');
             Route::delete('/{language}', [LanguageController::class, 'destroy'])->middleware('destroy');
+        });
+
+        Route::group(['prefix' => 'sizes'], function () {
+            Route::get('/', [SizeController::class, 'index']);
+            Route::post('/', [SizeController::class, 'store'])->middleware('store');
+            Route::get('/{size}', [SizeController::class, 'show']);
+            Route::patch('/{size}', [SizeController::class, 'update'])->middleware('update');
+            Route::delete('/{size}', [SizeController::class, 'destroy'])->middleware('destroy');
         });
     });
 });
