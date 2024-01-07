@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\v1;
+namespace App\Http\Requests\v1\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DestroyUserRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,13 +22,8 @@ class DestroyUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'deletedBy' => ['required', 'integer', 'exists:users,id'],
+            'email' => ['required', 'email', 'exists:users,email'],
+            'password' => ['required', 'string', 'min:8'],
         ];
-    }
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'deleted_By' => $this->deletedBy,
-        ]);
     }
 }

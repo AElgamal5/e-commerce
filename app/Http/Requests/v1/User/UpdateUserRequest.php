@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\v1;
+namespace App\Http\Requests\v1\User;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -12,7 +12,8 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        return $user != null && $user->tokenCan('employee');
     }
 
     /**
@@ -27,7 +28,7 @@ class UpdateUserRequest extends FormRequest
             'email' => ['sometimes', 'required', 'email', 'unique:users,email'],
             'role' => ['sometimes', 'required', 'integer', Rule::in([0, 1, 2])],
             'password' => ['sometimes', 'required', 'string', 'min:8'],
-            'phone' => ['sometimes', 'required', 'string'],
+            'phone' => ['sometimes', 'required', 'string', 'unique:users,phone'],
             'countryCode' => ['sometimes', 'required', 'string'],
 
             'updatedBy' => ['required', 'integer', 'exists:users,id'],

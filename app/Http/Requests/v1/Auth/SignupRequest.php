@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\v1;
+namespace App\Http\Requests\v1\Auth;
 
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreUserRequest extends FormRequest
+class SignupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,24 +23,16 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required'],
+            'name' => ['required', 'string'],
             'email' => ['required', 'email', 'unique:users,email'],
-            'role' => ['required', Rule::in([0, 1, 2])],
-            'password' => ['required', 'min:8'],
-            'phone' => ['required'],
-
-            'countryCode' => ['required'],
-            'createdBy' => ['sometimes', 'integer', 'exists:users,id'],
+            'role' => ['sometimes', Rule::in([2]),],
+            'password' => ['required', 'string', 'min:8'],
+            'phone' => ['required', 'string', 'unique:users,phone'],
+            'countryCode' => ['required', 'string'],
         ];
     }
     protected function prepareForValidation()
     {
-        if ($this->createdBy) {
-            $this->merge([
-                'created_by' => $this->createdBy,
-            ]);
-        }
-
         $this->merge([
             'country_code' => $this->countryCode,
         ]);

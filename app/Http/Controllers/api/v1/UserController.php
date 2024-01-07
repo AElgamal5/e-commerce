@@ -9,13 +9,14 @@ use App\Models\User;
 use App\Filters\v1\UserFilter;
 use App\Http\Resources\v1\UserCollection;
 use App\Http\Resources\v1\UserResource;
-use App\Http\Requests\v1\StoreUserRequest;
-use App\Http\Requests\v1\UpdateUserRequest;
-use App\Http\Requests\v1\DestroyUserRequest;
+use App\Http\Requests\v1\User\StoreUserRequest;
+use App\Http\Requests\v1\User\UpdateUserRequest;
+use App\Http\Requests\v1\User\DestroyUserRequest;
+use App\Http\Requests\v1\User\IndexUserRequest;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index(IndexUserRequest $request)
     {
         $filter = new UserFilter();
         $filterItems = $filter->transform($request);

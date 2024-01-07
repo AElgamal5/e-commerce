@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\api\v1\LanguageController;
 use App\Http\Controllers\api\v1\UserController;
+use App\Http\Controllers\api\v1\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,20 +29,32 @@ Route::get('/', function (Request $request) {
     ]);
 });
 
+
 Route::group(['prefix' => 'v1'], function () {
-    Route::group(['prefix' => 'users'], function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::post('/', [UserController::class, 'store']);
-        Route::get('/{user}', [UserController::class, 'show']);
-        Route::patch('/{user}', [UserController::class, 'update']);
-        Route::delete('/{user}', [UserController::class, 'destroy']);
+
+    //public
+    Route::group(['prefix' => 'auth'], function () {
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/signup', [AuthController::class, 'signup']);
     });
 
-    Route::group(['prefix' => 'languages'], function () {
-        Route::get('/', [LanguageController::class, 'index']);
-        Route::post('/', [LanguageController::class, 'store']);
-        Route::get('/{language}', [UserController::class, 'show']);
-        Route::patch('/{language}', [LanguageController::class, 'update']);
-        Route::delete('/{language}', [LanguageController::class, 'destroy']);
+
+    //protected
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::group(['prefix' => 'users'], function () {
+            Route::get('/', [UserController::class, 'index']);
+            Route::post('/', [UserController::class, 'store']);
+            Route::get('/{user}', [UserController::class, 'show']);
+            Route::patch('/{user}', [UserController::class, 'update']);
+            Route::delete('/{user}', [UserController::class, 'destroy']);
+        });
+
+        Route::group(['prefix' => 'languages'], function () {
+            Route::get('/', [LanguageController::class, 'index']);
+            Route::post('/', [LanguageController::class, 'store']);
+            Route::get('/{language}', [UserController::class, 'show']);
+            Route::patch('/{language}', [LanguageController::class, 'update']);
+            Route::delete('/{language}', [LanguageController::class, 'destroy']);
+        });
     });
 });
