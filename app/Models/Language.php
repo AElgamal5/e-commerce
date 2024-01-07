@@ -10,18 +10,27 @@ class Language extends Model
 {
     use HasFactory;
 
-    public function createdBy(): BelongsTo
+    protected $fillable = [
+        'name',
+        'code',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'deleted_at',
+    ];
+
+    public function createdByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, null, 'created_by');
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy(): BelongsTo
+    public function updatedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, null, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
-    public function deletedBy(): BelongsTo
+    public function deletedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, null, 'deleted_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

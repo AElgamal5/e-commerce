@@ -66,19 +66,4 @@ class User extends Authenticatable
     {
         return $this->BelongsTo(User::class, 'deleted_by');
     }
-
-    public function createdLanguages(): HasMany
-    {
-        return $this->hasMany(Language::class, 'created_by');
-    }
-
-    public function updatedLanguages(): HasMany
-    {
-        return $this->hasMany(Language::class, 'updated_by');
-    }
-
-    public function deletedLanguages(): HasMany
-    {
-        return $this->hasMany(Language::class, 'deleted_by');
-    }
 }

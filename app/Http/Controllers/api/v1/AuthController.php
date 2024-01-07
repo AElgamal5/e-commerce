@@ -28,7 +28,7 @@ class AuthController extends Controller
             $authUser = Auth::user();
 
             if ($authUser->role == 0) {
-                $adminToken = $user->createToken('admin-token', ['*'], now()->addMinutes(5))->plainTextToken;
+                $adminToken = $user->createToken('admin-token', ['*'], now()->addDays(5))->plainTextToken;
                 return response()->json([
                     'message' => 'You have logged in successfully',
                     'role' => 'admin',
