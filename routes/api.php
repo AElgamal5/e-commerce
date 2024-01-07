@@ -33,15 +33,15 @@ Route::group(['prefix' => 'v1'], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
         Route::get('/{user}', [UserController::class, 'show']);
-        Route::patch('/{id}', [UserController::class, 'update']);
-        Route::delete('/', [UserController::class, 'destroy']);
+        Route::patch('/{user}', [UserController::class, 'update']);
+        Route::delete('/{user}', [UserController::class, 'destroy']);
     });
 
     Route::group(['prefix' => 'languages'], function () {
         Route::get('/', [LanguageController::class, 'index']);
         Route::post('/', [LanguageController::class, 'store']);
         Route::get('/{language}', [UserController::class, 'show']);
-        Route::patch('/{id}', [LanguageController::class, 'update']);
-        Route::delete('/', [LanguageController::class, 'destroy']);
+        Route::patch('/{language}', [LanguageController::class, 'update']);
+        Route::delete('/{language}', [LanguageController::class, 'destroy']);
     });
 });

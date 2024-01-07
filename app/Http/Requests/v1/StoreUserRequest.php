@@ -30,7 +30,7 @@ class StoreUserRequest extends FormRequest
             'phone' => ['required'],
 
             'countryCode' => ['required'],
-            'createdBy' => ['sometimes'],
+            'createdBy' => ['sometimes', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()

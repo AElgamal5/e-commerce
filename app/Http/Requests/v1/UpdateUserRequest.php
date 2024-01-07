@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
@@ -11,7 +12,7 @@ class UpdateUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,26 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['sometimes', 'required', 'string'],
+            'email' => ['sometimes', 'required', 'email', 'unique:users,email'],
+            'role' => ['sometimes', 'required', 'integer', Rule::in([0, 1, 2])],
+            'password' => ['sometimes', 'required', 'string', 'min:8'],
+            'phone' => ['sometimes', 'required', 'string'],
+            'countryCode' => ['sometimes', 'required', 'string'],
+
+            'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
+    }
+    protected function prepareForValidation()
+    {
+        if ($this->countryCode) {
+            $this->merge([
+                'country_code' => $this->countryCode,
+            ]);
+        }
+
+        $this->merge([
+            'updated_by' => $this->updatedBy,
+        ]);
     }
 }

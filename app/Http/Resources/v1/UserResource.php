@@ -21,10 +21,12 @@ class UserResource extends JsonResource
             "role" => $this->role,
             "phone" => $this->phone,
             "countryCode" => $this->country_code,
-            // "createdBy" => $this->created_by,
-            // "updatedBy" => $this->updated_by,
-            // "deletedBy" => $this->deleted_by,
-            'createdBy' => new UserResource($this->whenLoaded('createdBy')),
+            "createdBy" => $this->created_by,
+            "updatedBy" => $this->updated_by,
+            "deletedBy" => $this->deleted_by,
+            'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
+            'updatedByUser' => new UserResource($this->whenLoaded('updatedByUser')),
+            // 'deletedByUser' => new UserResource($this->whenLoaded('deletedByUser')),
         ];
     }
 }

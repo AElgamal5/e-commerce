@@ -52,17 +52,17 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    public function createdBy(): BelongsTo
+    public function createdByUser(): BelongsTo
     {
         return $this->BelongsTo(User::class, 'created_by');
     }
 
-    public function updatedBy(): BelongsTo
+    public function updatedByUser(): BelongsTo
     {
         return $this->BelongsTo(User::class, 'updated_by');
     }
 
-    public function deletedBy(): BelongsTo
+    public function deletedByUser(): BelongsTo
     {
         return $this->BelongsTo(User::class, 'deleted_by');
     }
