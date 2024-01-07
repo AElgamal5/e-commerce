@@ -43,18 +43,18 @@ Route::group(['prefix' => 'v1'], function () {
     Route::group(['middleware' => 'auth:sanctum'], function () {
         Route::group(['prefix' => 'users'], function () {
             Route::get('/', [UserController::class, 'index']);
-            Route::post('/', [UserController::class, 'store']);
+            Route::post('/', [UserController::class, 'store'])->middleware('store');
             Route::get('/{user}', [UserController::class, 'show']);
-            Route::patch('/{user}', [UserController::class, 'update']);
-            Route::delete('/{user}', [UserController::class, 'destroy']);
+            Route::patch('/{user}', [UserController::class, 'update'])->middleware('update');
+            Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('destroy');
         });
 
         Route::group(['prefix' => 'languages'], function () {
             Route::get('/', [LanguageController::class, 'index']);
-            Route::post('/', [LanguageController::class, 'store']);
+            Route::post('/', [LanguageController::class, 'store'])->middleware('store');
             Route::get('/{language}', [LanguageController::class, 'show']);
-            Route::patch('/{language}', [LanguageController::class, 'update']);
-            Route::delete('/{language}', [LanguageController::class, 'destroy']);
+            Route::patch('/{language}', [LanguageController::class, 'update'])->middleware('update');
+            Route::delete('/{language}', [LanguageController::class, 'destroy'])->middleware('destroy');
         });
     });
 });
