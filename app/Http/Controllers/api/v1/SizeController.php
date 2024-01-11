@@ -24,18 +24,18 @@ class SizeController extends Controller
         $filter = new SizeFilter();
         $filterItems = $filter->transform($request);
 
-        $langs = Size::where('deleted_by', '=', null)->where($filterItems);
+        $sizes = Size::where('deleted_by', '=', null)->where($filterItems);
 
         if ($request->query('createdByUser') == 'true') {
-            $langs = $langs->with('createdByUser');
+            $sizes = $sizes->with('createdByUser');
         }
 
         if ($request->query('updatedByUser') == 'true') {
-            $langs = $langs->with('updatedByUser');
+            $sizes = $sizes->with('updatedByUser');
         }
 
 
-        return new SizeCollection($langs->paginate()->appends($request->query()));
+        return new SizeCollection($sizes->paginate()->appends($request->query()));
     }
 
     public function store(StoreSizeRequest $request)
