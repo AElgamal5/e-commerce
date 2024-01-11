@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use App\Models\Color;
 use App\Models\Language;
+use App\Models\ColorTranslation;
 
 use App\Filters\v1\ColorFilter;
 
@@ -37,7 +38,7 @@ class ColorController extends Controller
         }
 
         if ($request->query('translations') == '*') {
-            $colors = $colors->with('translations');
+            $colors = $colors->with('translations.language');
         } elseif ($request->has('translations')) {
 
             $langId = $request->query('translations');
@@ -98,13 +99,71 @@ class ColorController extends Controller
         return new ColorResource($color);
     }
 
-    public function update(Request $request, Color $color)
+    public function update(UpdateColorRequest $request, Color $color)
     {
-        //
+        $input = $request->all();
+
+        if (isset($input['code'])) {
+            $color->code = $input['code'];
+            $color->updated_by = $input['updatedBy'];
+        }
+        $color->save();
+
+        if (!isset($input['translations'])) {
+            return response()->json([
+                "message" => "Color updated successfully"
+            ]);
+        }
+
+        foreach ($input['translations'] as $trans) {
+
+            $translation = $color->translations()
+                ->where('language_id', $trans['languageId'])
+                ->first();
+
+            //if not exist , else if deleted, else need to update
+            if (!$translation) {
+                $color->translations()->create([
+                    'language_id' => $trans['languageId'],
+                    'name' => $trans['name'],
+                    'created_by' => $input['updatedBy'],
+                ]);
+            } elseif (!is_null($translation->deleted_by)) {
+                $translation->update([
+                    'name' => $trans['name'],
+                    'updated_by' => $input['updatedBy'],
+                    'deleted_by' => null,
+                    'deleted_at' => null,
+                ]);
+            } else {
+                $translation->update([
+                    'name' => $trans['name'],
+                    'updated_by' => $input['updatedBy']
+                ]);
+            }
+        }
+
+        return response()->json([
+            "message" => "Color updated successfully"
+        ]);
     }
 
-    public function destroy(Request $request, Color $color)
+    public function destroy(DestroyColorRequest $request, Color $color)
     {
-        //
+        $color->update([
+            'deleted_by' => $request->json('deletedBy'),
+            'deleted_at' => now(),
+        ]);
+
+        ColorTranslation::where('color_id', $color->id)->update([
+            'deleted_by' => $request->json('deletedBy'),
+            'deleted_at' => now(),
+        ]);
+
+
+        return response()->json([
+            'message' => 'Size deleted successfully',
+        ]);
+
     }
 }

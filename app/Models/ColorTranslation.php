@@ -22,7 +22,7 @@ class ColorTranslation extends Model
         'deleted_at',
     ];
 
-    public function language()
+    public function language(): BelongsTo
     {
         return $this->belongsTo(Language::class, 'language_id');
     }

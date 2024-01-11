@@ -24,6 +24,7 @@ class ColorTranslationsResource extends JsonResource
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
             'updatedByUser' => new UserResource($this->whenLoaded('updatedByUser')),
             // 'deletedByUser' => new UserResource($this->whenLoaded('deletedByUser')),
+            'language' => new LanguageResource($this->whenLoaded('language')),
         ];
     }
 }
