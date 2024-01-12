@@ -14,6 +14,7 @@ use App\Http\Resources\v1\LanguageResource;
 
 use App\Http\Requests\v1\Language\IndexLanguageRequest;
 use App\Http\Requests\v1\Language\StoreLanguageRequest;
+use App\Http\Requests\v1\Language\ShowLanguageRequest;
 use App\Http\Requests\v1\Language\UpdateLanguageRequest;
 use App\Http\Requests\v1\Language\DestroyLanguageRequest;
 
@@ -43,7 +44,7 @@ class LanguageController extends Controller
         return new LanguageResource(Language::create($request->all()));
     }
 
-    public function show(Request $request, Language $language)
+    public function show(ShowLanguageRequest $request, Language $language)
     {
         if ($request->query('createdByUser') == 'true') {
             $language = $language->loadMissing('createdByUser');

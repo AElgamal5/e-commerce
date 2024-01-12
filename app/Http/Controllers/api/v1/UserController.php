@@ -14,6 +14,7 @@ use App\Http\Resources\v1\UserCollection;
 
 use App\Http\Requests\v1\User\IndexUserRequest;
 use App\Http\Requests\v1\User\StoreUserRequest;
+use App\Http\Requests\v1\User\ShowUserRequest;
 use App\Http\Requests\v1\User\UpdateUserRequest;
 use App\Http\Requests\v1\User\DestroyUserRequest;
 
@@ -40,7 +41,7 @@ class UserController extends Controller
         return new UserResource(User::create($request->all()));
     }
 
-    public function show(Request $request, User $user)
+    public function show(ShowUserRequest $request, User $user)
     {
         if ($request->query('createdByUser') == 'true') {
             $user->loadMissing('createdByUser');

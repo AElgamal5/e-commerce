@@ -14,6 +14,7 @@ use App\Http\Resources\v1\SizeResource;
 
 use App\Http\Requests\v1\Size\IndexSizeRequest;
 use App\Http\Requests\v1\Size\StoreSizeRequest;
+use App\Http\Requests\v1\Size\ShowSizeRequest;
 use App\Http\Requests\v1\Size\UpdateSizeRequest;
 use App\Http\Requests\v1\Size\DestroySizeRequest;
 
@@ -43,7 +44,7 @@ class SizeController extends Controller
         return new SizeResource(Size::create($request->all()));
     }
 
-    public function show(Request $request, Size $size)
+    public function show(ShowSizeRequest $request, Size $size)
     {
         if ($request->query('createdByUser') == 'true') {
             $size = $size->loadMissing('createdByUser');
