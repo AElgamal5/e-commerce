@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
+        //=========================Basic Users=============================
         \App\Models\User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'admin@arkan.com',
@@ -48,6 +49,28 @@ class DatabaseSeeder extends Seeder
             'role' => 2,
             'phone' => "1234567892",
             "country_code" => '+20',
+            'created_by' => 1
+        ]);
+
+        //=========================Basic Languages=============================
+        \App\Models\Language::factory()->create([
+            'name' => 'العربية',
+            'code' => 'ar',
+            'created_by' => 1
+        ]);
+        \App\Models\Language::factory()->create([
+            'name' => 'English',
+            'code' => 'en',
+            'created_by' => 1
+        ]);
+        \App\Models\Language::factory()->create([
+            'name' => 'French',
+            'code' => 'fr',
+            'created_by' => 1
+        ]);
+        \App\Models\Language::factory()->create([
+            'name' => 'test',
+            'code' => 'ts',
             'created_by' => 1
         ]);
     }

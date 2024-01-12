@@ -24,7 +24,7 @@ class UpdateLanguageRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'min:2', 'max:20'],
-            'code' => ['sometimes', 'string', 'min:2', 'max:4', 'unique:languages,code'],
+            'code' => ['sometimes', 'string', 'min:2', 'max:4'],
             'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }

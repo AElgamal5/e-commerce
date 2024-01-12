@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 use App\Models\Language;
 
@@ -17,6 +16,8 @@ use App\Http\Requests\v1\Language\StoreLanguageRequest;
 use App\Http\Requests\v1\Language\ShowLanguageRequest;
 use App\Http\Requests\v1\Language\UpdateLanguageRequest;
 use App\Http\Requests\v1\Language\DestroyLanguageRequest;
+
+use App\Services\v1\LanguageService;
 
 class LanguageController extends Controller
 {
@@ -39,13 +40,23 @@ class LanguageController extends Controller
         return new LanguageCollection($langs->paginate()->appends($request->query()));
     }
 
-    public function store(StoreLanguageRequest $request)
+    public function store(StoreLanguageRequest $request, LanguageService $languageService)
     {
+        $uniquenessErrors = $languageService->uniquenessChecks($request);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         return new LanguageResource(Language::create($request->all()));
     }
 
-    public function show(ShowLanguageRequest $request, Language $language)
+    public function show(ShowLanguageRequest $request, Language $language, LanguageService $languageService)
     {
+        $existenceErrors = $languageService->existenceCheck($language);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $language = $language->loadMissing('createdByUser');
         }
@@ -57,8 +68,18 @@ class LanguageController extends Controller
         return new LanguageResource($language);
     }
 
-    public function update(UpdateLanguageRequest $request, Language $language)
+    public function update(UpdateLanguageRequest $request, Language $language, LanguageService $languageService)
     {
+        $existenceErrors = $languageService->existenceCheck($language);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        $uniquenessErrors = $languageService->uniquenessChecks($request);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         $language->update($request->all());
 
         return response()->json([
@@ -66,8 +87,13 @@ class LanguageController extends Controller
         ]);
     }
 
-    public function destroy(DestroyLanguageRequest $request, Language $language)
+    public function destroy(DestroyLanguageRequest $request, Language $language, LanguageService $languageService)
     {
+        $existenceErrors = $languageService->existenceCheck($language);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         $language->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),

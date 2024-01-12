@@ -15,8 +15,8 @@ class UserService
             $emailExist = User::where('deleted_by', null)->where('email', $request->json('email'));
 
             if (
-                ($user->exists() && $emailExist->exists() && $user->id != $emailExist->first()->id)
-                || (!$user->exists() && $emailExist->exists())
+                ($user && $emailExist->exists() && $user->id != $emailExist->first()->id)
+                || (!$user && $emailExist->exists())
             ) {
                 return response()->json([
                     'errors' => [

@@ -24,7 +24,7 @@ class StoreLanguageRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:2', 'max:20'],
-            'code' => ['required', 'string', 'min:2', 'max:4', 'unique:languages,code'],
+            'code' => ['required', 'string', 'min:2', 'max:4'],
             'createdBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
