@@ -23,7 +23,7 @@ class StoreColorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'min:2', 'max:6', 'unique:colors,code'],
+            'code' => ['required', 'string', 'min:2', 'max:6'],
             'createdBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['required', 'array', 'min:1'],

@@ -23,7 +23,7 @@ class UpdateColorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['sometimes', 'string', 'min:2', 'max:6', 'unique:colors,code'],
+            'code' => ['sometimes', 'string', 'min:2', 'max:6'],
             'updatedBy' => ['sometimes', 'integer', 'exists:users,id'],
 
             'translations' => ['sometimes', 'array', 'min:1'],

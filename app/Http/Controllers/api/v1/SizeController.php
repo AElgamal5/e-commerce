@@ -75,7 +75,7 @@ class SizeController extends Controller
             return $existenceErrors;
         }
 
-        $uniquenessErrors = $sizeService->uniquenessChecks($request);
+        $uniquenessErrors = $sizeService->uniquenessChecks($request, $size);
         if ($uniquenessErrors) {
             return $uniquenessErrors;
         }

@@ -20,6 +20,8 @@ use App\Http\Requests\v1\Color\ShowColorRequest;
 use App\Http\Requests\v1\Color\UpdateColorRequest;
 use App\Http\Requests\v1\Color\DestroyColorRequest;
 
+use App\Services\v1\ColorService;
+
 class ColorController extends Controller
 {
     public function index(IndexColorRequest $request)
@@ -53,8 +55,13 @@ class ColorController extends Controller
         return new ColorCollection($colors->paginate()->appends($request->query()));
     }
 
-    public function store(StoreColorRequest $request)
+    public function store(StoreColorRequest $request, ColorService $colorService)
     {
+        $uniquenessErrors = $colorService->uniquenessChecks($request);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         $input = $request->all();
 
         $color = Color::create([
@@ -73,8 +80,14 @@ class ColorController extends Controller
         return new ColorResource($color);
     }
 
-    public function show(ShowColorRequest $request, Color $color)
+    public function show(ShowColorRequest $request, Color $color, ColorService $colorService)
     {
+
+        $existenceErrors = $colorService->existenceCheck($color);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $color = $color->loadMissing('createdByUser');
         }
@@ -84,7 +97,7 @@ class ColorController extends Controller
         }
 
         if ($request->query('translations') == '*') {
-            $color = $color->loadMissing('translations');
+            $color = $color->loadMissing('translations.language');
         } elseif ($request->has('translations')) {
 
             $langId = $request->query('translations');
@@ -99,8 +112,18 @@ class ColorController extends Controller
         return new ColorResource($color);
     }
 
-    public function update(UpdateColorRequest $request, Color $color)
+    public function update(UpdateColorRequest $request, Color $color, ColorService $colorService)
     {
+        $existenceErrors = $colorService->existenceCheck($color);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        $uniquenessErrors = $colorService->uniquenessChecks($request, $color);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         $input = $request->all();
 
         if (isset($input['code'])) {
@@ -148,8 +171,13 @@ class ColorController extends Controller
         ]);
     }
 
-    public function destroy(DestroyColorRequest $request, Color $color)
+    public function destroy(DestroyColorRequest $request, Color $color, ColorService $colorService)
     {
+        $existenceErrors = $colorService->existenceCheck($color);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         $color->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),
