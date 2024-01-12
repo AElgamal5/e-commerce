@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-
 use App\Models\User;
 
 use App\Filters\v1\UserFilter;
 
+use App\Http\Controllers\Controller;
 use App\Http\Resources\v1\UserResource;
-use App\Http\Resources\v1\UserCollection;
 
+use App\Http\Resources\v1\UserCollection;
+use App\Http\Requests\v1\User\ShowUserRequest;
 use App\Http\Requests\v1\User\IndexUserRequest;
 use App\Http\Requests\v1\User\StoreUserRequest;
-use App\Http\Requests\v1\User\ShowUserRequest;
 use App\Http\Requests\v1\User\UpdateUserRequest;
 use App\Http\Requests\v1\User\DestroyUserRequest;
+
+use App\Services\v1\UserService;
 
 class UserController extends Controller
 {
@@ -36,13 +36,24 @@ class UserController extends Controller
         return new UserCollection($users->paginate()->appends($request->query()));
     }
 
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRequest $request, UserService $userService)
     {
+        $uniquenessChecks = $userService->uniquenessChecks($request);
+        if ($uniquenessChecks) {
+            return $uniquenessChecks;
+        }
+
         return new UserResource(User::create($request->all()));
+
     }
 
-    public function show(ShowUserRequest $request, User $user)
+    public function show(ShowUserRequest $request, User $user, UserService $userService)
     {
+        $existenceCheck = $userService->existenceCheck($user);
+        if ($existenceCheck) {
+            return $existenceCheck;
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $user->loadMissing('createdByUser');
         }
@@ -50,8 +61,18 @@ class UserController extends Controller
         return new UserResource($user);
     }
 
-    public function update(UpdateUserRequest $request, User $user)
+    public function update(UpdateUserRequest $request, User $user, UserService $userService)
     {
+        $existenceCheck = $userService->existenceCheck($user);
+        if ($existenceCheck) {
+            return $existenceCheck;
+        }
+
+        $uniquenessChecks = $userService->uniquenessChecks($request, $user);
+        if ($uniquenessChecks) {
+            return $uniquenessChecks;
+        }
+
         $user->update($request->all());
 
         return response()->json([
@@ -59,8 +80,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function destroy(DestroyUserRequest $request, User $user)
+    public function destroy(DestroyUserRequest $request, User $user, UserService $userService)
     {
+        $existenceCheck = $userService->existenceCheck($user);
+        if ($existenceCheck) {
+            return $existenceCheck;
+        }
+
         $user->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),

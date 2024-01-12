@@ -24,14 +24,14 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'required', 'string'],
-            'email' => ['sometimes', 'required', 'email', 'unique:users,email'],
-            'role' => ['sometimes', 'required', 'integer', Rule::in([0, 1, 2])],
-            'password' => ['sometimes', 'required', 'string', 'min:8'],
-            'phone' => ['sometimes', 'required', 'string', 'unique:users,phone'],
-            'countryCode' => ['sometimes', 'required', 'string'],
+            'name' => ['sometimes', 'string'],
+            'email' => ['sometimes', 'string', 'email'],
+            'role' => ['sometimes', 'integer', Rule::in([0, 1, 2])],
+            'password' => ['sometimes', 'string', 'min:8'],
+            'phone' => ['sometimes', 'string'],
 
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
+            'countryCode' => ['sometimes', 'string'],
+            'updatedBy' => ['sometimes', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
