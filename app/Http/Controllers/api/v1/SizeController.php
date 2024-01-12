@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 use App\Models\Size;
 
@@ -17,6 +16,8 @@ use App\Http\Requests\v1\Size\StoreSizeRequest;
 use App\Http\Requests\v1\Size\ShowSizeRequest;
 use App\Http\Requests\v1\Size\UpdateSizeRequest;
 use App\Http\Requests\v1\Size\DestroySizeRequest;
+
+use App\Services\v1\SizeService;
 
 class SizeController extends Controller
 {
@@ -39,13 +40,23 @@ class SizeController extends Controller
         return new SizeCollection($sizes->paginate()->appends($request->query()));
     }
 
-    public function store(StoreSizeRequest $request)
+    public function store(StoreSizeRequest $request, SizeService $sizeService)
     {
+        $uniquenessErrors = $sizeService->uniquenessChecks($request);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         return new SizeResource(Size::create($request->all()));
     }
 
-    public function show(ShowSizeRequest $request, Size $size)
+    public function show(ShowSizeRequest $request, Size $size, SizeService $sizeService)
     {
+        $existenceErrors = $sizeService->existenceCheck($size);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $size = $size->loadMissing('createdByUser');
         }
@@ -57,8 +68,18 @@ class SizeController extends Controller
         return new SizeResource($size);
     }
 
-    public function update(UpdateSizeRequest $request, Size $size)
+    public function update(UpdateSizeRequest $request, Size $size, SizeService $sizeService)
     {
+        $existenceErrors = $sizeService->existenceCheck($size);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        $uniquenessErrors = $sizeService->uniquenessChecks($request);
+        if ($uniquenessErrors) {
+            return $uniquenessErrors;
+        }
+
         $size->update($request->all());
 
         return response()->json([
@@ -66,8 +87,13 @@ class SizeController extends Controller
         ]);
     }
 
-    public function destroy(DestroySizeRequest $request, Size $size)
+    public function destroy(DestroySizeRequest $request, Size $size, SizeService $sizeService)
     {
+        $existenceErrors = $sizeService->existenceCheck($size);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
         $size->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),

@@ -23,7 +23,7 @@ class UpdateSizeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['sometimes', 'string', 'min:2', 'max:6', 'unique:sizes,code'],
+            'code' => ['sometimes', 'string', 'min:2', 'max:6'],
             'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }

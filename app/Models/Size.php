@@ -30,6 +30,6 @@ class Size extends Model
 
     public function deletedByUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'deleted_by');
     }
 }
