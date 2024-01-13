@@ -10,6 +10,7 @@ use App\Models\Language;
 use App\Models\ColorTranslation;
 
 use App\Filters\v1\ColorFilter;
+use App\Filters\v1\ColorTranslationFilter;
 
 use App\Http\Resources\v1\ColorCollection;
 use App\Http\Resources\v1\ColorResource;
@@ -26,10 +27,17 @@ class ColorController extends Controller
 {
     public function index(IndexColorRequest $request)
     {
+        //color filter
         $filter = new ColorFilter();
         $filterItems = $filter->transform($request);
 
-        $colors = Color::where('deleted_by', '=', null)->where($filterItems);
+        $colors = Color::where('deleted_by', null)->where($filterItems);
+
+        //color translation filter
+        $translationFilter = new ColorTranslationFilter();
+        $translationFilterItems = $translationFilter->transform($request);
+        $colorTranslations = ColorTranslation::where('deleted_by', null)->where($translationFilterItems)->get('color_id');
+        $colors->whereIn('id', $colorTranslations->toArray());
 
         if ($request->query('createdByUser') == 'true') {
             $colors = $colors->with('createdByUser');
