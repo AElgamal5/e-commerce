@@ -24,7 +24,7 @@ class UpdateColorRequest extends FormRequest
     {
         return [
             'code' => ['sometimes', 'string', 'min:2', 'max:6'],
-            'updatedBy' => ['sometimes', 'integer', 'exists:users,id'],
+            'updatedBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['sometimes', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],

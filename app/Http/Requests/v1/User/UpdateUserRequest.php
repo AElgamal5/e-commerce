@@ -31,7 +31,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => ['sometimes', 'string'],
 
             'countryCode' => ['sometimes', 'string'],
-            'updatedBy' => ['sometimes', 'integer', 'exists:users,id'],
+            'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()

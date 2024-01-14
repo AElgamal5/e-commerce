@@ -55,4 +55,35 @@ class LanguageService
             ], Response::HTTP_BAD_REQUEST);
         }
     }
+    public function existenceByIdCheck($languageId)
+    {
+        $language = Language::find($languageId);
+
+        $response = $this->existenceCheck($language);
+
+        if ($response) {
+            $content = [
+                'message' => "Language with id: $languageId is deleted"
+            ];
+            $response->setContent(json_encode($content));
+
+            return $response;
+        }
+    }
+
+    public function translationsCheck(Request $request)
+    {
+        $input = $request->all();
+
+        if (!$request->has('translations')) {
+            return;
+        }
+
+        foreach ($input['translations'] as $trans) {
+            $existenceByIdErrors = $this->existenceByIdCheck($trans['languageId']);
+            if ($existenceByIdErrors) {
+                return $existenceByIdErrors;
+            }
+        }
+    }
 }

@@ -22,6 +22,7 @@ use App\Http\Requests\v1\Color\UpdateColorRequest;
 use App\Http\Requests\v1\Color\DestroyColorRequest;
 
 use App\Services\v1\ColorService;
+use App\Services\v1\LanguageService;
 
 class ColorController extends Controller
 {
@@ -63,11 +64,19 @@ class ColorController extends Controller
         return new ColorCollection($colors->paginate()->appends($request->query()));
     }
 
-    public function store(StoreColorRequest $request, ColorService $colorService)
-    {
+    public function store(
+        StoreColorRequest $request,
+        ColorService $colorService,
+        LanguageService $languageService
+    ) {
         $uniquenessErrors = $colorService->uniquenessChecks($request);
         if ($uniquenessErrors) {
             return $uniquenessErrors;
+        }
+
+        $translationsErrors = $languageService->translationsCheck($request);
+        if ($translationsErrors) {
+            return $translationsErrors;
         }
 
         $input = $request->all();
@@ -120,8 +129,12 @@ class ColorController extends Controller
         return new ColorResource($color);
     }
 
-    public function update(UpdateColorRequest $request, Color $color, ColorService $colorService)
-    {
+    public function update(
+        UpdateColorRequest $request,
+        Color $color,
+        ColorService $colorService,
+        LanguageService $languageService
+    ) {
         $existenceErrors = $colorService->existenceCheck($color);
         if ($existenceErrors) {
             return $existenceErrors;
@@ -130,6 +143,11 @@ class ColorController extends Controller
         $uniquenessErrors = $colorService->uniquenessChecks($request, $color);
         if ($uniquenessErrors) {
             return $uniquenessErrors;
+        }
+
+        $translationsErrors = $languageService->translationsCheck($request);
+        if ($translationsErrors) {
+            return $translationsErrors;
         }
 
         $input = $request->all();

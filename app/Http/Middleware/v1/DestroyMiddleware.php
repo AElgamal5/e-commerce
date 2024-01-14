@@ -41,7 +41,7 @@ class DestroyMiddleware
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if ($deletedByUser->deleted_By || $deletedByUser->deleted_at) {
+        if ($deletedByUser->deleted_by || $deletedByUser->deleted_at) {
             return response()->json([
                 'errors' => [
                     'deletedBy' => [

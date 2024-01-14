@@ -41,11 +41,11 @@ class StoreMiddleware
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if ($createdByUser->deleted_By || $createdByUser->deleted_at) {
+        if ($createdByUser->deleted_by || $createdByUser->deleted_at) {
             return response()->json([
                 'errors' => [
                     'createdBy' => [
-                        'This user has been deleted'
+                        'This user is deleted'
                     ]
                 ]
             ], Response::HTTP_CONFLICT);

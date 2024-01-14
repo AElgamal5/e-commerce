@@ -41,11 +41,11 @@ class UpdateMiddleware
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if ($updatedByUser->deleted_By || $updatedByUser->deleted_at) {
+        if ($updatedByUser->deleted_by || $updatedByUser->deleted_at) {
             return response()->json([
                 'errors' => [
                     'updatedBy' => [
-                        'This user has been deleted'
+                        'This user is deleted'
                     ]
                 ]
             ], Response::HTTP_CONFLICT);
