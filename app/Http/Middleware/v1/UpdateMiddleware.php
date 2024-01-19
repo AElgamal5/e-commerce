@@ -17,7 +17,7 @@ class UpdateMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $updatedBy = $request->json('updatedBy');
+        $updatedBy = $request->updatedBy;
 
         if (!$updatedBy) {
             return response()->json([

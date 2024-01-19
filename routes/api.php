@@ -8,6 +8,7 @@ use App\Http\Controllers\api\v1\UserController;
 use App\Http\Controllers\api\v1\AuthController;
 use App\Http\Controllers\api\v1\SizeController;
 use App\Http\Controllers\api\v1\ColorController;
+use App\Http\Controllers\api\v1\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,14 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::get('/{color}', [ColorController::class, 'show']);
                 Route::patch('/{color}', [ColorController::class, 'update'])->middleware('update');
                 Route::delete('/{color}', [ColorController::class, 'destroy'])->middleware('destroy');
+            });
+
+            Route::group(['prefix' => 'categories'], function () {
+                Route::get('/', [CategoryController::class, 'index']);
+                Route::post('/', [CategoryController::class, 'store'])->middleware('store');
+                Route::get('/{category}', [CategoryController::class, 'show']);
+                Route::patch('/{category}', [CategoryController::class, 'update'])->middleware('update');
+                Route::delete('/{category}', [CategoryController::class, 'destroy'])->middleware('destroy');
             });
         });
     });

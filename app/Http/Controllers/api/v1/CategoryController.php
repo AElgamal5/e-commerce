@@ -2,59 +2,60 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 
-use App\Models\Color;
+use App\Models\Category;
 use App\Models\Language;
-use App\Models\ColorTranslation;
+use App\Filters\v1\CategoryFilter;
 
-use App\Filters\v1\ColorFilter;
-use App\Filters\v1\ColorTranslationFilter;
+use App\Models\CategoryTranslation;
+use App\Http\Controllers\Controller;
 
-use App\Http\Resources\v1\ColorCollection;
-use App\Http\Resources\v1\ColorResource;
-
-use App\Http\Requests\v1\Color\IndexColorRequest;
-use App\Http\Requests\v1\Color\StoreColorRequest;
-use App\Http\Requests\v1\Color\ShowColorRequest;
-use App\Http\Requests\v1\Color\UpdateColorRequest;
-use App\Http\Requests\v1\Color\DestroyColorRequest;
-
-use App\Services\v1\ColorService;
+use App\Services\v1\CategoryService;
 use App\Services\v1\LanguageService;
 
-class ColorController extends Controller
+use App\Http\Resources\v1\CategoryResource;
+use App\Filters\v1\CategoryTranslationFilter;
+use App\Http\Resources\v1\CategoryCollection;
+use App\Http\Requests\v1\Category\ShowCategoryRequest;
+use App\Http\Requests\v1\Category\IndexCategoryRequest;
+
+use App\Http\Requests\v1\Category\StoreCategoryRequest;
+use App\Http\Requests\v1\Category\UpdateCategoryRequest;
+use App\Http\Requests\v1\Category\DestroyCategoryRequest;
+
+class CategoryController extends Controller
 {
-    public function index(IndexColorRequest $request)
+    public function index(IndexCategoryRequest $request)
     {
-        //color filter
-        $filter = new ColorFilter();
+        //category filter
+        $filter = new CategoryFilter();
         $filterItems = $filter->transform($request);
 
-        $colors = Color::where('deleted_by', null)->where($filterItems);
+        $categories = Category::where('deleted_by', null)->where($filterItems);
 
-        //color translation filter
-        $translationFilter = new ColorTranslationFilter();
+        //category translation filter
+        $translationFilter = new CategoryTranslationFilter();
         $translationFilterItems = $translationFilter->transform($request);
-        $colorTranslations = ColorTranslation::where('deleted_by', null)->where($translationFilterItems)->get('color_id');
-        $colors->whereIn('id', $colorTranslations->toArray());
+        $categoryTranslations = CategoryTranslation::where('deleted_by', null)->where($translationFilterItems)->get('category_id');
+        $categories->whereIn('id', $categoryTranslations->toArray());
 
         if ($request->query('createdByUser') == 'true') {
-            $colors = $colors->with('createdByUser');
+            $categories = $categories->with('createdByUser');
         }
 
         if ($request->query('updatedByUser') == 'true') {
-            $colors = $colors->with('updatedByUser');
+            $categories = $categories->with('updatedByUser');
         }
 
         if ($request->query('translations') == '*') {
-            $colors = $colors->with('translations.language');
+            $categories = $categories->with('translations.language');
         } elseif ($request->has('translations')) {
 
             $langId = $request->query('translations');
 
-            $colors = $colors->with([
+            $categories = $categories->with([
                 'translations' => function ($query) use ($langId) {
                     $query->where('language_id', $langId)->where('deleted_by', null);
                 }
@@ -65,7 +66,7 @@ class ColorController extends Controller
             $language = $language ? $language->toArray() : null;
 
             if ($language) {
-                $colors = $colors->with([
+                $categories = $categories->with([
                     'translations' => function ($query) use ($language) {
                         $query->where('language_id', $language['id'])->where('deleted_by', null);
                     }
@@ -73,19 +74,13 @@ class ColorController extends Controller
             }
         }
 
-        return new ColorCollection($colors->paginate()->appends($request->query()));
+        return new CategoryCollection($categories->paginate()->appends($request->query()));
     }
 
     public function store(
-        StoreColorRequest $request,
-        ColorService $colorService,
+        StoreCategoryRequest $request,
         LanguageService $languageService
     ) {
-        $uniquenessErrors = $colorService->uniquenessChecks($request);
-        if ($uniquenessErrors) {
-            return $uniquenessErrors;
-        }
-
         $translationsErrors = $languageService->translationsCheck($request);
         if ($translationsErrors) {
             return $translationsErrors;
@@ -93,45 +88,52 @@ class ColorController extends Controller
 
         $input = $request->all();
 
-        $color = Color::create([
-            'code' => $input['code'],
+        //save the image to the disk
+        $imageData = base64_decode(preg_replace('/^data:image\/(\w+);base64,/', '', $input['image']));
+        $uniqueId = uniqid();
+        $imageName = time() . '_' . $uniqueId . '.png';
+        Storage::disk('public')->put($imageName, $imageData);
+
+        $category = Category::create([
+            'image' => $imageName ?? null,
             'created_by' => $input['createdBy'],
         ]);
 
         foreach ($input['translations'] as $trans) {
-            $color->translations()->create([
+            $category->translations()->create([
                 'language_id' => $trans['languageId'],
                 'name' => $trans['name'],
+                'description' => $trans['description'] ?? null,
                 'created_by' => $input['createdBy'],
             ]);
         }
 
-        return new ColorResource($color);
+        return new CategoryResource($category);
     }
 
-    public function show(ShowColorRequest $request, Color $color, ColorService $colorService)
+    public function show(ShowCategoryRequest $request, Category $category, CategoryService $categoryService)
     {
 
-        $existenceErrors = $colorService->existenceCheck($color);
+        $existenceErrors = $categoryService->existenceCheck($category);
         if ($existenceErrors) {
             return $existenceErrors;
         }
 
         if ($request->query('createdByUser') == 'true') {
-            $color = $color->loadMissing('createdByUser');
+            $category = $category->loadMissing('createdByUser');
         }
 
         if ($request->query('updatedByUser') == 'true') {
-            $color = $color->loadMissing('updatedByUser');
+            $category = $category->loadMissing('updatedByUser');
         }
 
         if ($request->query('translations') == '*') {
-            $color = $color->loadMissing('translations.language');
+            $category = $category->loadMissing('translations.language');
         } elseif ($request->has('translations')) {
 
             $langId = $request->query('translations');
 
-            $color = $color->loadMissing([
+            $category = $category->loadMissing([
                 'translations' => function ($query) use ($langId) {
                     $query->where('language_id', $langId)->where('deleted_by', null);
                 }
@@ -142,7 +144,7 @@ class ColorController extends Controller
             $language = $language ? $language->toArray() : null;
 
             if ($language) {
-                $color = $color->loadMissing([
+                $category = $category->loadMissing([
                     'translations' => function ($query) use ($language) {
                         $query->where('language_id', $language['id'])->where('deleted_by', null);
                     }
@@ -150,23 +152,18 @@ class ColorController extends Controller
             }
         }
 
-        return new ColorResource($color);
+        return new CategoryResource($category);
     }
 
     public function update(
-        UpdateColorRequest $request,
-        Color $color,
-        ColorService $colorService,
+        UpdateCategoryRequest $request,
+        Category $category,
+        CategoryService $categoryService,
         LanguageService $languageService
     ) {
-        $existenceErrors = $colorService->existenceCheck($color);
+        $existenceErrors = $categoryService->existenceCheck($category);
         if ($existenceErrors) {
             return $existenceErrors;
-        }
-
-        $uniquenessErrors = $colorService->uniquenessChecks($request, $color);
-        if ($uniquenessErrors) {
-            return $uniquenessErrors;
         }
 
         $translationsErrors = $languageService->translationsCheck($request);
@@ -176,71 +173,83 @@ class ColorController extends Controller
 
         $input = $request->all();
 
-        if (isset($input['code'])) {
-            $color->code = $input['code'];
-            $color->updated_by = $input['updatedBy'];
+        if (isset($input['image'])) {
+            //delete the old image
+            //save the new one
         }
-        $color->save();
+        $category->save();
 
         if (!isset($input['translations'])) {
             return response()->json([
-                "message" => "Color updated successfully"
+                "message" => "Category updated successfully"
             ]);
         }
 
         foreach ($input['translations'] as $trans) {
 
-            $translation = $color->translations()
+            $translation = $category->translations()
                 ->where('language_id', $trans['languageId'])
                 ->first();
 
-            //if not exist , else if deleted, else need to update
+            //if not exist , else if deleted then respawn, else need to update
             if (!$translation) {
-                $color->translations()->create([
+                //need at least name to create a new translation
+                if (!isset($trans['name'])) {
+                    return response()
+                        ->json(
+                            ['message' => "Name is required to create a new category translations"],
+                            Response::HTTP_NOT_FOUND
+                        );
+                }
+
+                $category->translations()->create([
                     'language_id' => $trans['languageId'],
                     'name' => $trans['name'],
+                    'description' => $trans['description'] ?? null,
                     'created_by' => $input['updatedBy'],
                 ]);
             } elseif (!is_null($translation->deleted_by)) {
                 $translation->update([
-                    'name' => $trans['name'],
+                    'name' => $trans['name'] ?? $translation->name,
+                    'description' => $trans['description'] ?? $translation->description,
                     'updated_by' => $input['updatedBy'],
                     'deleted_by' => null,
                     'deleted_at' => null,
                 ]);
             } else {
                 $translation->update([
-                    'name' => $trans['name'],
+                    'name' => $trans['name'] ?? $translation->name,
+                    'description' => $trans['description'] ?? $translation->description,
                     'updated_by' => $input['updatedBy']
                 ]);
             }
         }
 
         return response()->json([
-            "message" => "Color updated successfully"
+            "message" => "Category updated successfully"
         ]);
     }
 
-    public function destroy(DestroyColorRequest $request, Color $color, ColorService $colorService)
+    public function destroy(DestroyCategoryRequest $request, Category $category, CategoryService $categoryService)
     {
-        $existenceErrors = $colorService->existenceCheck($color);
+        $existenceErrors = $categoryService->existenceCheck($category);
         if ($existenceErrors) {
             return $existenceErrors;
         }
 
-        $color->update([
+        $category->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),
         ]);
 
-        ColorTranslation::where('color_id', $color->id)->update([
+        CategoryTranslation::where('category_id', $category->id)->update([
             'deleted_by' => $request->json('deletedBy'),
             'deleted_at' => now(),
         ]);
 
 
         return response()->json([
-            'message' => 'Color deleted successfully',
+            'message' => 'Category deleted successfully',
         ]);
 
     }

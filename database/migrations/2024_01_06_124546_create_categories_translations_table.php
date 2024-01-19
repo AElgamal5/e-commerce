@@ -12,16 +12,23 @@ return new class extends Migration {
     {
         Schema::create('categories_translations', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('category_id');
-            $table->bigInteger('language_id');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('language_id');
             $table->string('name');
-            $table->text('description');
+            $table->text('description')->nullable();
 
-            $table->bigInteger('created_by');
-            $table->bigInteger('updated_by')->nullable();
-            $table->bigInteger('deleted_by')->nullable();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
+
+            $table->foreign('category_id')->references('id')->on('categories');
+            $table->foreign('language_id')->references('id')->on('languages');
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('updated_by')->references('id')->on('users');
+            $table->foreign('deleted_by')->references('id')->on('users');
         });
     }
 

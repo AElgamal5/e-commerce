@@ -17,7 +17,7 @@ class DestroyMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $deletedBy = $request->json('deletedBy');
+        $deletedBy = $request->deletedBy;
 
         if (!$deletedBy) {
             return response()->json([

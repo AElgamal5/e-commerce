@@ -17,7 +17,7 @@ class StoreMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $createdBy = $request->json('createdBy');
+        $createdBy = $request->createdBy;
 
         if (!$createdBy) {
             return response()->json([
