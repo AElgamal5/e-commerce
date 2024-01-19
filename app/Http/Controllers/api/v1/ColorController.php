@@ -59,6 +59,18 @@ class ColorController extends Controller
                     $query->where('language_id', $langId)->where('deleted_by', null);
                 }
             ]);
+        } elseif ($request->has('lang')) {
+            $langCode = $request->query('lang');
+            $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+            $language = $language ? $language->toArray() : null;
+
+            if ($language) {
+                $colors = $colors->with([
+                    'translations' => function ($query) use ($language) {
+                        $query->where('language_id', $language['id'])->where('deleted_by', null);
+                    }
+                ]);
+            }
         }
 
         return new ColorCollection($colors->paginate()->appends($request->query()));
@@ -124,6 +136,18 @@ class ColorController extends Controller
                     $query->where('language_id', $langId)->where('deleted_by', null);
                 }
             ]);
+        } elseif ($request->has('lang')) {
+            $langCode = $request->query('lang');
+            $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+            $language = $language ? $language->toArray() : null;
+
+            if ($language) {
+                $color = $color->loadMissing([
+                    'translations' => function ($query) use ($language) {
+                        $query->where('language_id', $language['id'])->where('deleted_by', null);
+                    }
+                ]);
+            }
         }
 
         return new ColorResource($color);

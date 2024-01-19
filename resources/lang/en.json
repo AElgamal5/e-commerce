@@ -1,7 +1,7 @@
 {
     "InTheNameOfAllah": "In the name of Allah, the Most Gracious, the Most Merciful",
 
-    "auth": "auth",
+    "auth&user": "",
     "emailIsRequired": "Email is required",
     "emailIsNotValid": "Email is not valid",
     "emailIsDoesNotExist": "Email does not exist",

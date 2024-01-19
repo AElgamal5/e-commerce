@@ -1,7 +1,7 @@
 {
     "InTheNameOfAllah": "بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ",
 
-    "auth": "",
+    "auth&user": "",
     "emailIsRequired": "البريد الالكتروني مطلوب",
     "emailIsNotValid": "البريد الإلكتروني غير صالح",
     "emailIsDoesNotExist": "البريد الإلكتروني غير موجود",
