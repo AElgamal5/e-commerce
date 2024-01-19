@@ -68,5 +68,7 @@ class Kernel extends HttpKernel
         'store' => \App\Http\Middleware\v1\StoreMiddleware::class,
         'update' => \App\Http\Middleware\v1\UpdateMiddleware::class,
         'destroy' => \App\Http\Middleware\v1\DestroyMiddleware::class,
+
+        'setLocale' => \App\Http\Middleware\SetLocale::class,
     ];
 }

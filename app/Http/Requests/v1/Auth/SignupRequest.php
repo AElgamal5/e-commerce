@@ -24,17 +24,36 @@ class SignupRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'role' => ['sometimes', Rule::in([2]),],
+            'email' => ['required', 'email'],
+            'role' => ['sometimes', 'in:2'],
             'password' => ['required', 'string', 'min:8'],
-            'phone' => ['required', 'string', 'unique:users,phone'],
+            'phone' => ['required', 'string'],
             'countryCode' => ['required', 'string'],
         ];
     }
-    protected function prepareForValidation()
+    protected function prepareForValidation(): void
     {
         $this->merge([
             'country_code' => $this->countryCode,
         ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => __('nameIsRequired'),
+
+            'email.required' => __('emailIsRequired'),
+            'email.email' => __('emailIsNotValid'),
+
+            'password.required' => __('passwordIsRequired'),
+            'password.min' => __('passwordMustBeAtLeast8Characters'),
+
+            'role.in' => __('roleMustBeAtAsACustomer'),
+
+            'phone.required' => __('phoneIsRequired'),
+
+            'countryCode.required' => __('countryCodeIsRequired'),
+        ];
     }
 }

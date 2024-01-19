@@ -26,4 +26,16 @@ class LoginRequest extends FormRequest
             'password' => ['required', 'string', 'min:8'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => __('emailIsRequired'),
+            'email.email' => __('emailIsNotValid'),
+            'email.exists' => __('emailIsDoesNotExist'),
+
+            'password.required' => __('passwordIsRequired'),
+            'password.min' => __('passwordMustBeAtLeast8Characters'),
+        ];
+    }
 }

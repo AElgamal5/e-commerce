@@ -1,0 +1,14 @@
+{
+    "InTheNameOfAllah": "بِسْمِ اللَّـهِ الرَّحْمَـٰنِ الرَّحِيمِ",
+
+    "auth": "",
+    "emailIsRequired": "البريد الالكتروني مطلوب",
+    "emailIsNotValid": "البريد الإلكتروني غير صالح",
+    "emailIsDoesNotExist": "البريد الإلكتروني غير موجود",
+    "passwordIsRequired": "كلمة المرور مطلوبة",
+    "passwordMustBeAtLeast8Characters": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+    "nameIsRequired": "الاسم مطلوب",
+    "roleMustBeAtAsACustomer": "يجب أن تكون الرتبة كعميل",
+    "phoneIsRequired": "الهاتف مطلوب",
+    "countryCodeIsRequired": "رمز البلد مطلوب"
+}

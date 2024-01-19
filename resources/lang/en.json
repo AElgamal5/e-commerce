@@ -1,0 +1,14 @@
+{
+    "InTheNameOfAllah": "In the name of Allah, the Most Gracious, the Most Merciful",
+
+    "auth": "auth",
+    "emailIsRequired": "Email is required",
+    "emailIsNotValid": "Email is not valid",
+    "emailIsDoesNotExist": "Email does not exist",
+    "passwordIsRequired": "Password is required",
+    "passwordMustBeAtLeast8Characters": "Password must be at least 8 characters",
+    "nameIsRequired": "Name is required",
+    "roleMustBeAtAsACustomer": "Role must be as a customer",
+    "phoneIsRequired": "Phone is required",
+    "countryCodeIsRequired": "Country code is required"
+}
