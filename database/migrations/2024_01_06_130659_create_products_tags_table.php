@@ -12,14 +12,21 @@ return new class extends Migration {
     {
         Schema::create('products_tags', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('product_id');
-            $table->bigInteger('tag_id');
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('tag_id');
 
-            $table->bigInteger('created_by');
-            $table->bigInteger('updated_by')->nullable();
-            $table->bigInteger('deleted_by')->nullable();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
+
+            $table->foreign('product_id')->references('id')->on('products');
+            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('updated_by')->references('id')->on('users');
+            $table->foreign('deleted_by')->references('id')->on('users');
         });
     }
 

@@ -3,24 +3,28 @@
 namespace App\Http\Controllers\api\v1;
 
 use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
 
 use App\Models\Product;
 use App\Models\Language;
-use App\Filters\v1\ProductFilter;
-
 use App\Models\ProductTranslation;
-use App\Http\Controllers\Controller;
+use App\Models\ProductTag;
+
+use App\Filters\v1\ProductFilter;
+use App\Filters\v1\ProductTranslationFilter;
+use App\Filters\v1\ProductTagFilter;
+
 
 use App\Services\v1\ProductService;
 use App\Services\v1\LanguageService;
 use App\Services\v1\CategoryService;
+use App\Services\v1\TagService;
 
 use App\Http\Resources\v1\ProductResource;
-use App\Filters\v1\ProductTranslationFilter;
 use App\Http\Resources\v1\ProductCollection;
+
 use App\Http\Requests\v1\Product\ShowProductRequest;
 use App\Http\Requests\v1\Product\IndexProductRequest;
-
 use App\Http\Requests\v1\Product\StoreProductRequest;
 use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
@@ -42,6 +46,12 @@ class ProductController extends Controller
         $translationFilterItems = $translationFilter->transform($request);
         $productTranslations = ProductTranslation::where('deleted_by', null)->where($translationFilterItems)->get('product_id');
         $products->whereIn('id', $productTranslations->toArray());
+
+        //product tag filter
+        $tagFilter = new ProductTagFilter();
+        $tagFilterItems = $tagFilter->transform($request);
+        $productTags = ProductTag::where('deleted_by', null)->where($tagFilterItems)->get('product_id');
+        $products->whereIn('id', $productTags->toArray());
 
         if ($request->query('createdByUser') == 'true') {
             $products = $products->with('createdByUser');
@@ -93,6 +103,24 @@ class ProductController extends Controller
             }
         }
 
+        if ($request->query('tags') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $products = $products->with([
+                        'tags.tag.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        }
+                    ]);
+                }
+            } else {
+                $products = $products->with('tags.tag.translations');
+            }
+
+        }
+
         return new ProductCollection($products->paginate()->appends($request->query()));
     }
 
@@ -100,6 +128,7 @@ class ProductController extends Controller
         StoreProductRequest $request,
         LanguageService $languageService,
         CategoryService $categoryService,
+        TagService $tagService
     ) {
         $translationsErrors = $languageService->translationsCheck($request);
         if ($translationsErrors) {
@@ -111,12 +140,17 @@ class ProductController extends Controller
             return $categoryExistenceErrors;
         }
 
+        $tagsExistenceErrors = $tagService->productTagsCheck($request);
+        if ($tagsExistenceErrors) {
+            return $tagsExistenceErrors;
+        }
+
         if (
             ($request->has('discountType') && !$request->has('discountValue'))
             || (!$request->has('discountType') && $request->has('discountValue'))
         ) {
             return response()->json([
-                'message' => 'discountType & discountValue are coupled',
+                'message' => 'Discount type & discount value are coupled',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -133,11 +167,21 @@ class ProductController extends Controller
             ]);
         }
 
+        foreach ($input['tags'] as $tag) {
+            $product->tags()->create([
+                'tag_id' => $tag,
+                'created_by' => $input['createdBy'],
+            ]);
+        }
+
         return new ProductResource($product);
     }
 
-    public function show(ShowProductRequest $request, Product $product, ProductService $productService)
-    {
+    public function show(
+        ShowProductRequest $request,
+        Product $product,
+        ProductService $productService
+    ) {
 
         $existenceErrors = $productService->existenceCheck($product);
         if ($existenceErrors) {
@@ -194,6 +238,24 @@ class ProductController extends Controller
             }
         }
 
+        if ($request->query('tags') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $product = $product->loadMissing([
+                        'tags.tag.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        }
+                    ]);
+                }
+            } else {
+                $product = $product->loadMissing('tags.tag.translations');
+            }
+
+        }
+
         return new ProductResource($product);
     }
 
@@ -203,6 +265,7 @@ class ProductController extends Controller
         ProductService $productService,
         LanguageService $languageService,
         CategoryService $categoryService,
+        TagService $tagService,
     ) {
         $existenceErrors = $productService->existenceCheck($product);
         if ($existenceErrors) {
@@ -212,6 +275,11 @@ class ProductController extends Controller
         $translationsErrors = $languageService->translationsCheck($request);
         if ($translationsErrors) {
             return $translationsErrors;
+        }
+
+        $tagsExistenceErrors = $tagService->productTagsCheck($request);
+        if ($tagsExistenceErrors) {
+            return $tagsExistenceErrors;
         }
 
         $input = $request->all();
@@ -243,49 +311,57 @@ class ProductController extends Controller
 
         $product->update($input);
 
-        if (!isset($input['translations'])) {
-            return response()->json([
-                "message" => "Product updated successfully"
-            ]);
+        if (isset($input['translations'])) {
+            foreach ($input['translations'] as $trans) {
+                $translation = $product->translations()
+                    ->where('language_id', $trans['languageId'])
+                    ->first();
+
+                //if not exist , else if deleted then respawn, else need to update
+                if (!$translation) {
+                    //need at least name to create a new translation
+                    if (!isset($trans['name'])) {
+                        return response()
+                            ->json(
+                                ['message' => "Name is required to create a new product translations"],
+                                Response::HTTP_NOT_FOUND
+                            );
+                    }
+
+                    $product->translations()->create([
+                        'language_id' => $trans['languageId'],
+                        'name' => $trans['name'],
+                        'description' => $trans['description'] ?? null,
+                        'created_by' => $input['updatedBy'],
+                    ]);
+                } elseif (!is_null($translation->deleted_by)) {
+                    $translation->update([
+                        'name' => $trans['name'] ?? $translation->name,
+                        'description' => $trans['description'] ?? $translation->description,
+                        'updated_by' => $input['updatedBy'],
+                        'deleted_by' => null,
+                        'deleted_at' => null,
+                    ]);
+                } else {
+                    $translation->update([
+                        'name' => $trans['name'] ?? $translation->name,
+                        'description' => $trans['description'] ?? $translation->description,
+                        'updated_by' => $input['updatedBy']
+                    ]);
+                }
+            }
         }
 
-
-        foreach ($input['translations'] as $trans) {
-
-            $translation = $product->translations()
-                ->where('language_id', $trans['languageId'])
-                ->first();
-
-            //if not exist , else if deleted then respawn, else need to update
-            if (!$translation) {
-                //need at least name to create a new translation
-                if (!isset($trans['name'])) {
-                    return response()
-                        ->json(
-                            ['message' => "Name is required to create a new product translations"],
-                            Response::HTTP_NOT_FOUND
-                        );
-                }
-
-                $product->translations()->create([
-                    'language_id' => $trans['languageId'],
-                    'name' => $trans['name'],
-                    'description' => $trans['description'] ?? null,
+        //[1,2, ......]
+        //get all product tags
+        //if not exist in arr delete
+        //check on array to create new tags and respawn if deleted
+        if (isset($input['tags'])) {
+            $product->tags()->delete();
+            foreach ($input['tags'] as $tagId) {
+                $product->tags()->create([
+                    'tag_id' => $tagId,
                     'created_by' => $input['updatedBy'],
-                ]);
-            } elseif (!is_null($translation->deleted_by)) {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy'],
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                ]);
-            } else {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy']
                 ]);
             }
         }
@@ -306,12 +382,17 @@ class ProductController extends Controller
         }
 
         $product->update([
-            'deleted_by' => $request->json('deletedBy'),
+            'deleted_by' => $request->deletedBy,
             'deleted_at' => now(),
         ]);
 
         ProductTranslation::where('product_id', $product->id)->update([
-            'deleted_by' => $request->json('deletedBy'),
+            'deleted_by' => $request->deletedBy,
+            'deleted_at' => now(),
+        ]);
+
+        ProductTag::where('product_id', $product->id)->update([
+            'deleted_by' => $request->deletedBy,
             'deleted_at' => now(),
         ]);
 

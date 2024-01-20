@@ -27,10 +27,12 @@ class ProductResource extends JsonResource
 
             "createdBy" => $this->created_by,
             "updatedBy" => $this->updated_by,
+
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
             'updatedByUser' => new UserResource($this->whenLoaded('updatedByUser')),
             // 'deletedByUser' => new UserResource($this->whenLoaded('deletedByUser')),
             'translations' => new ProductTranslationsCollection($this->whenLoaded('translations')),
+            'tags' => new ProductTagCollection($this->whenLoaded('tags')),
             'category' => new CategoryResource($this->whenLoaded('category')),
         ];
     }

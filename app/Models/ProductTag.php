@@ -4,21 +4,16 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Product extends Model
+class ProductTag extends Model
 {
     use HasFactory;
+    protected $table = 'products_tags';
+
     protected $fillable = [
-        'status',
-        'year',
-        'price',
-        'discount_type',
-        'discount_value',
-        'initial_quantity',
-        'current_quantity',
-        'category_id',
+        'product_id',
+        'tag_id',
 
         'created_by',
         'updated_by',
@@ -26,19 +21,14 @@ class Product extends Model
         'deleted_at',
     ];
 
-    public function translations(): hasMany
+    public function tag(): BelongsTo
     {
-        return $this->hasMany(ProductTranslation::class, 'product_id');
+        return $this->belongsTo(Tag::class, 'tag_id');
     }
 
-    public function tags(): hasMany
+    public function product(): BelongsTo
     {
-        return $this->hasMany(ProductTag::class, 'product_id');
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
     public function createdByUser(): BelongsTo

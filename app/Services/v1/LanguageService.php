@@ -73,11 +73,12 @@ class LanguageService
 
     public function translationsCheck(Request $request)
     {
-        $input = $request->all();
 
         if (!$request->has('translations')) {
             return;
         }
+
+        $input = $request->all();
 
         foreach ($input['translations'] as $trans) {
             $existenceByIdErrors = $this->existenceByIdCheck($trans['languageId']);

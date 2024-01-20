@@ -41,6 +41,9 @@ class UpdateProductRequest extends FormRequest
             'translations.*.languageId' => ['sometimes', 'integer', 'exists:languages,id'],
             'translations.*.name' => ['sometimes', 'string', 'min:2', 'max:25'],
             'translations.*.description' => ['sometimes', 'string', 'min:2', 'max:250'],
+
+            'tags' => ['sometimes', 'array', 'min:1'],
+            'tags.*' => ['required', 'integer', 'exists:tags,id'],
         ];
     }
     protected function prepareForValidation()
