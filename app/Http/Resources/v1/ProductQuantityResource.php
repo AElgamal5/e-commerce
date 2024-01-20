@@ -5,26 +5,28 @@ namespace App\Http\Resources\v1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductTagResource extends JsonResource
+class ProductQuantityResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request)
+    public function toArray(Request $request): array
     {
         return [
             "id" => $this->id,
-            // "productId" => $this->product_id,
-            // "tagId" => $this->tag_id,
-            "createdBy" => $this->created_by,
-            "updatedBy" => $this->updated_by,
+            "colorId" => $this->color_id,
+            "sizeId" => $this->size_id,
+            "initialQuantity" => $this->initial_quantity,
+            "currentQuantity" => $this->current_quantity,
+            "image" => $this->image,
+
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
             'updatedByUser' => new UserResource($this->whenLoaded('updatedByUser')),
             // 'deletedByUser' => new UserResource($this->whenLoaded('deletedByUser')),
-            'tag' => new TagResource($this->whenLoaded('tag')),
+            'color' => new ColorResource($this->whenLoaded('color')),
+            'size' => new SizeResource($this->whenLoaded('size')),
         ];
-        // return new TagResource($this->whenLoaded('tag'));
     }
 }
