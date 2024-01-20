@@ -15,4 +15,10 @@ class CategoryService
             ], Response::HTTP_BAD_REQUEST);
         }
     }
+
+    public function existenceCheckById(int $categoryId)
+    {
+        $category = Category::find($categoryId);
+        return $this->existenceCheck($category);
+    }
 }

@@ -15,16 +15,23 @@ return new class extends Migration {
             $table->integer('status')->default(1);
             $table->integer('year')->default(date("Y"));
             $table->double('price');
-            $table->integer('discount_type')->nullable();
+            $table->string('discount_type')->nullable();
             $table->double('discount_value')->nullable();
             $table->integer('initial_quantity');
             $table->integer('current_quantity');
+            $table->unsignedBigInteger('category_id');
 
-            $table->bigInteger('created_by');
-            $table->bigInteger('updated_by')->nullable();
-            $table->bigInteger('deleted_by')->nullable();
+            $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->unsignedBigInteger('deleted_by')->nullable();
+
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
+
+            $table->foreign('category_id')->references('id')->on('categories');
+            $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('updated_by')->references('id')->on('users');
+            $table->foreign('deleted_by')->references('id')->on('users');
         });
     }
 
