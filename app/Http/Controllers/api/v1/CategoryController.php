@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\api\v1;
 
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\JsonResponse;
 
 use App\Models\Category;
 use App\Models\Language;
@@ -14,6 +14,7 @@ use App\Http\Controllers\Controller;
 
 use App\Services\v1\CategoryService;
 use App\Services\v1\LanguageService;
+use App\Services\v1\ImageService;
 
 use App\Http\Resources\v1\CategoryResource;
 use App\Filters\v1\CategoryTranslationFilter;
@@ -79,7 +80,8 @@ class CategoryController extends Controller
 
     public function store(
         StoreCategoryRequest $request,
-        LanguageService $languageService
+        LanguageService $languageService,
+        ImageService $imageService
     ) {
         $translationsErrors = $languageService->translationsCheck($request);
         if ($translationsErrors) {
@@ -89,13 +91,13 @@ class CategoryController extends Controller
         $input = $request->all();
 
         //save the image to the disk
-        $imageData = base64_decode(preg_replace('/^data:image\/(\w+);base64,/', '', $input['image']));
-        $uniqueId = uniqid();
-        $imageName = time() . '_' . $uniqueId . '.png';
-        Storage::disk('public')->put($imageName, $imageData);
+        $trickOrTreat = $imageService->save($input['image']);
+        if ($trickOrTreat instanceof JsonResponse) {
+            return $trickOrTreat;
+        }
 
         $category = Category::create([
-            'image' => $imageName ?? null,
+            'image' => $trickOrTreat ?? null,
             'created_by' => $input['createdBy'],
         ]);
 
@@ -159,7 +161,8 @@ class CategoryController extends Controller
         UpdateCategoryRequest $request,
         Category $category,
         CategoryService $categoryService,
-        LanguageService $languageService
+        LanguageService $languageService,
+        ImageService $imageService
     ) {
         $existenceErrors = $categoryService->existenceCheck($category);
         if ($existenceErrors) {
@@ -175,9 +178,14 @@ class CategoryController extends Controller
 
         if (isset($input['image'])) {
             //delete the old image
+            $imageService->delete($category->image);
             //save the new one
+            $imageName = $imageService->save($input['image']);
+
+            $category->image = $imageName;
+            $category->updated_by = $input['updatedBy'];
+            $category->save();
         }
-        $category->save();
 
         if (!isset($input['translations'])) {
             return response()->json([
@@ -230,12 +238,18 @@ class CategoryController extends Controller
         ]);
     }
 
-    public function destroy(DestroyCategoryRequest $request, Category $category, CategoryService $categoryService)
-    {
+    public function destroy(
+        DestroyCategoryRequest $request,
+        Category $category,
+        CategoryService $categoryService,
+        ImageService $imageService
+    ) {
         $existenceErrors = $categoryService->existenceCheck($category);
         if ($existenceErrors) {
             return $existenceErrors;
         }
+
+        $imageService->delete($category->image);
 
         $category->update([
             'deleted_by' => $request->json('deletedBy'),

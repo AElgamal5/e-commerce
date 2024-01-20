@@ -22,11 +22,9 @@ class UpdateCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $maxFileSize = env('MAX_FILE_SIZE', 10);
-        $maxFileSize *= 1000;
 
         return [
-            'image' => ['sometimes', 'image', 'mimes:jpeg,png,jpg,gif', "size:$maxFileSize"],
+            'image' => ['sometimes', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
             'updatedBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['sometimes', 'array', 'min:1'],

@@ -22,11 +22,9 @@ class StoreCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        $maxFileSize = env('MAX_FILE_SIZE', 10);
-        $maxFileSize *= 1024 * 1024;
 
         return [
-            'image' => ['required', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64', "max:$maxFileSize"],
+            'image' => ['required', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
             'createdBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['required', 'array', 'min:1'],
