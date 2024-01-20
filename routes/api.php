@@ -9,6 +9,7 @@ use App\Http\Controllers\api\v1\AuthController;
 use App\Http\Controllers\api\v1\SizeController;
 use App\Http\Controllers\api\v1\ColorController;
 use App\Http\Controllers\api\v1\CategoryController;
+use App\Http\Controllers\api\v1\TagController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,17 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::patch('/{category}', [CategoryController::class, 'update'])->middleware('update');
                 Route::delete('/{category}', [CategoryController::class, 'destroy'])->middleware('destroy');
             });
+
+            Route::group(['prefix' => 'tags'], function () {
+                Route::get('/', [TagController::class, 'index']);
+                Route::post('/', [TagController::class, 'store'])->middleware('store');
+                Route::get('/{tag}', [TagController::class, 'show']);
+                Route::patch('/{tag}', [TagController::class, 'update'])->middleware('update');
+                Route::delete('/{tag}', [TagController::class, 'destroy'])->middleware('destroy');
+            });
+
         });
+
     });
+
 });
