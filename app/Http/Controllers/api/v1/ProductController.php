@@ -29,8 +29,6 @@ use App\Http\Requests\v1\Product\StoreProductRequest;
 use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
 
-use function PHPUnit\Framework\isNull;
-
 class ProductController extends Controller
 {
     public function index(IndexProductRequest $request)
@@ -295,7 +293,7 @@ class ProductController extends Controller
                 unset($input['discount_value']);
             }
         }
-        if ($request->has('discountValue') && $request->has('discountType') && isNull($input['discountValue']) && isNull($input['discountType'])) {
+        if ($request->has('discountValue') && $request->has('discountType') && is_null($input['discountValue']) && is_null($input['discountType'])) {
             $input['discount_value'] = null;
             $input['discount_type'] = null;
         }
