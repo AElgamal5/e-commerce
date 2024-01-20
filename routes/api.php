@@ -48,6 +48,11 @@ Route::group(['prefix' => 'v1'], function () {
 
         //protected
         Route::group(['middleware' => 'auth:sanctum'], function () {
+
+            Route::group(['prefix' => 'auth'], function () {
+                Route::get('/logout', [AuthController::class, 'logout']);
+            });
+
             Route::group(['prefix' => 'users'], function () {
                 Route::get('/', [UserController::class, 'index']);
                 Route::post('/', [UserController::class, 'store'])->middleware('store');

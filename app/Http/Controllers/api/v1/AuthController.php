@@ -11,6 +11,8 @@ use App\Models\User;
 use App\Http\Requests\v1\Auth\LoginRequest;
 use App\Http\Requests\v1\Auth\SignupRequest;
 
+use App\Http\Resources\v1\UserResource;
+
 class AuthController extends Controller
 {
     public function login(LoginRequest $request)
@@ -33,6 +35,7 @@ class AuthController extends Controller
                     'message' => 'You have logged in successfully',
                     'role' => 'admin',
                     'token' => $adminToken,
+                    'user' => new UserResource($user),
                 ]);
             } elseif ($authUser->role == 1) {
                 $employeeToken = $user->createToken('employee-token', ['employee'], now()->addMinutes(5))->plainTextToken;
@@ -40,6 +43,7 @@ class AuthController extends Controller
                     'message' => 'You have logged in successfully',
                     'role' => 'employee',
                     'token' => $employeeToken,
+                    'user' => new UserResource($user),
                 ]);
             } elseif ($authUser->role == 2) {
                 $customerToken = $user->createToken('customer-token', ['customer'], now()->addMinutes(5))->plainTextToken;
@@ -47,6 +51,7 @@ class AuthController extends Controller
                     'message' => 'You have logged in successfully',
                     'role' => 'customer',
                     'token' => $customerToken,
+                    'user' => new UserResource($user),
                 ]);
             } else {
                 return response()->json([
@@ -64,5 +69,11 @@ class AuthController extends Controller
         return response()->json([
             'message' => "You have signed-up successfully"
         ], Response::HTTP_CREATED);
+    }
+    public function logout()
+    {
+        Auth::user()->tokens()->delete();
+
+        return response()->json(['message' => 'Successfully logged out']);
     }
 }
