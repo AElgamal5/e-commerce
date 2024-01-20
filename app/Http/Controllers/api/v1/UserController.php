@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Http\Controllers\Controller;
+
 use App\Models\User;
 
 use App\Filters\v1\UserFilter;
 
-use App\Http\Controllers\Controller;
 use App\Http\Resources\v1\UserResource;
-
 use App\Http\Resources\v1\UserCollection;
+
 use App\Http\Requests\v1\User\ShowUserRequest;
 use App\Http\Requests\v1\User\IndexUserRequest;
 use App\Http\Requests\v1\User\StoreUserRequest;

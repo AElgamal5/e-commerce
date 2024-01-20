@@ -11,6 +11,7 @@ use App\Http\Controllers\api\v1\ColorController;
 use App\Http\Controllers\api\v1\CategoryController;
 use App\Http\Controllers\api\v1\TagController;
 use App\Http\Controllers\api\v1\ProductController;
+use App\Http\Controllers\api\v1\ContactUsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,9 @@ Route::group(['prefix' => 'v1'], function () {
         Route::group(['prefix' => 'auth'], function () {
             Route::post('/login', [AuthController::class, 'login']);
             Route::post('/signup', [AuthController::class, 'signup']);
+        });
+        Route::group(['prefix' => 'contactUs'], function () {
+            Route::post('/', [ContactUsController::class, 'store']);
         });
 
         //protected
@@ -107,6 +111,13 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::get('/{product}', [ProductController::class, 'show']);
                 Route::patch('/{product}', [ProductController::class, 'update'])->middleware('update');
                 Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('destroy');
+            });
+
+            Route::group(['prefix' => 'contactUs'], function () {
+                Route::get('/', [ContactUsController::class, 'index']);
+                Route::get('/{contactUs}', [ContactUsController::class, 'show']);
+                Route::patch('/{contactUs}', [ContactUsController::class, 'update']);
+                Route::delete('/{contactUs}', [ContactUsController::class, 'destroy']);
             });
 
         });
