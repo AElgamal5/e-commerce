@@ -25,6 +25,8 @@ use App\Http\Requests\v1\Product\StoreProductRequest;
 use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
 
+use function PHPUnit\Framework\isNull;
+
 class ProductController extends Controller
 {
     public function index(IndexProductRequest $request)
@@ -200,6 +202,7 @@ class ProductController extends Controller
         Product $product,
         ProductService $productService,
         LanguageService $languageService,
+        CategoryService $categoryService,
     ) {
         $existenceErrors = $productService->existenceCheck($product);
         if ($existenceErrors) {
@@ -213,18 +216,39 @@ class ProductController extends Controller
 
         $input = $request->all();
 
-        if (isset($input['year'])) {
-
-            $product->year = $input['year'];
+        //discount type and discount value are coupled
+        if (isset($input['discount_type'])) {
+            if (!isset($product->discount_value) || !isset($input['discount_value'])) {
+                unset($input['discount_type']);
+            }
         }
-        $product->updated_by = $input['updatedBy'];
-        $product->save();
+        if (isset($input['discount_value'])) {
+            if (!isset($product->discount_type) || !isset($input['discount_type'])) {
+                unset($input['discount_value']);
+            }
+        }
+        if ($request->has('discountValue') && $request->has('discountType') && isNull($input['discountValue']) && isNull($input['discountType'])) {
+            $input['discount_value'] = null;
+            $input['discount_type'] = null;
+        }
+
+        // category check
+        if (isset($input['category_id'])) {
+            $categoryExistenceErrors = $categoryService->existenceCheckById($request->categoryId);
+            if ($categoryExistenceErrors) {
+                return $categoryExistenceErrors;
+            }
+        }
+
+
+        $product->update($input);
 
         if (!isset($input['translations'])) {
             return response()->json([
                 "message" => "Product updated successfully"
             ]);
         }
+
 
         foreach ($input['translations'] as $trans) {
 

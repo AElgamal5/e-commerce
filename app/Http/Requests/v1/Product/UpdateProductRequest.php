@@ -4,6 +4,8 @@ namespace App\Http\Requests\v1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+use function PHPUnit\Framework\isNull;
+
 class UpdateProductRequest extends FormRequest
 {
     /**
@@ -28,8 +30,8 @@ class UpdateProductRequest extends FormRequest
             'status' => ['sometimes', 'integer', 'in:0,1'],
             'year' => ['sometimes', 'integer', 'min:2020', "max:$year"],
             'price' => ['sometimes', 'numeric', 'min:1'],
-            'discountType' => ['sometimes', 'string', 'in:fixed,percentage'],
-            'discountValue' => ['sometimes', 'numeric', 'min:0.25'],
+            'discountType' => ['sometimes', 'nullable', 'string', 'in:fixed,percentage'],
+            'discountValue' => ['sometimes', 'nullable', 'numeric', 'min:0.25'],
             'initialQuantity' => ['sometimes', 'integer', 'min:1'],
             'currentQuantity' => ['sometimes', 'integer', 'min:1'],
             'categoryId' => ['sometimes', 'integer', 'exists:categories,id'],
