@@ -24,15 +24,20 @@ class UserController extends Controller
 {
     public function index(IndexUserRequest $request)
     {
+
         $filter = new UserFilter();
         $filterItems = $filter->transform($request);
-        $users = User::where('deleted_by', '=', null)->where($filterItems);
+        $users = User::search($request->search)->where('deleted_by', '=', null)->where($filterItems);
 
         if ($request->query('createdByUser') == 'true') {
             $users = $users->with('createdByUser');
         }
         if ($request->query('updatedByUser') == 'true') {
             $users = $users->with('updatedByUser');
+        }
+
+        if ($request->pageSize == -1) {
+            return new UserCollection($users->get());
         }
 
         return new UserCollection($users->paginate($request->pageSize)->appends($request->query()));

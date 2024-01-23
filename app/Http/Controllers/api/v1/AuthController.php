@@ -17,7 +17,7 @@ class AuthController extends Controller
 {
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', '=', $request->json('email'))->first();
+        $user = User::where('email', '=', $request->email)->first();
 
         if ($user->deleted_by || $user->deleted_at) {
             return response()->json([
@@ -25,12 +25,12 @@ class AuthController extends Controller
             ], 400);
         }
 
-        if (Auth::attempt(['email' => $request->json('email'), 'password' => $request->json('password')])) {
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
 
             $authUser = Auth::user();
 
             if ($authUser->role == 0) {
-                $adminToken = $user->createToken('admin-token', ['*'], now()->addDays(5))->plainTextToken;
+                $adminToken = $user->createToken('admin-token', ['*'], now()->addDays(1))->plainTextToken;
                 return response()->json([
                     'message' => 'You have logged in successfully',
                     'role' => 'admin',
@@ -38,7 +38,7 @@ class AuthController extends Controller
                     'user' => new UserResource($user),
                 ]);
             } elseif ($authUser->role == 1) {
-                $employeeToken = $user->createToken('employee-token', ['employee'], now()->addMinutes(5))->plainTextToken;
+                $employeeToken = $user->createToken('employee-token', ['employee'], now()->addDays(1))->plainTextToken;
                 return response()->json([
                     'message' => 'You have logged in successfully',
                     'role' => 'employee',
@@ -46,7 +46,7 @@ class AuthController extends Controller
                     'user' => new UserResource($user),
                 ]);
             } elseif ($authUser->role == 2) {
-                $customerToken = $user->createToken('customer-token', ['customer'], now()->addMinutes(5))->plainTextToken;
+                $customerToken = $user->createToken('customer-token', ['customer'], now()->addMinutes(60))->plainTextToken;
                 return response()->json([
                     'message' => 'You have logged in successfully',
                     'role' => 'customer',
@@ -72,6 +72,7 @@ class AuthController extends Controller
     }
     public function logout()
     {
+        //ignore errors here
         Auth::user()->tokens()->delete();
 
         return response()->json(['message' => 'Successfully logged out']);

@@ -52,6 +52,14 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    public function scopeSearch($query, $text)
+    {
+        return $query->where(function ($query) use ($text) {
+            $query->where('name', 'like', "%$text%")
+                ->orWhere('email', 'like', "%$text%");
+        });
+    }
+
     public function createdByUser(): BelongsTo
     {
         return $this->BelongsTo(User::class, 'created_by');
