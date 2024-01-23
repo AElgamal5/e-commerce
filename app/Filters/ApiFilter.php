@@ -16,7 +16,8 @@ class ApiFilter
         'lt' => '<',
         'gte' => '>=',
         'lte' => '<=',
-        'ne' => '!='
+        'ne' => '!=',
+        'lk' => 'like'
     ];
 
     public function transform(Request $request)

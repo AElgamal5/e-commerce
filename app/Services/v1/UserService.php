@@ -5,6 +5,7 @@ namespace App\Services\v1;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class UserService
 {
@@ -12,7 +13,7 @@ class UserService
     {
         //email uniqueness check
         if ($request->has('email')) {
-            $emailExist = User::where('deleted_by', null)->where('email', $request->json('email'));
+            $emailExist = User::where('deleted_by', null)->where('email', $request->email);
 
             if (
                 ($user && $emailExist->exists() && $user->id != $emailExist->first()->id)
@@ -51,12 +52,12 @@ class UserService
             }
 
             $phoneExist = User::where('deleted_by', null)
-                ->where('phone', $request->json('phone'))
-                ->where('country_code', $request->json('countryCode'));
+                ->where('phone', $request->phone)
+                ->where('country_code', $request->countryCode);
 
             if (
-                ($user->exists() && $phoneExist->exists() && $user->id != $phoneExist->first()->id)
-                || (!$user->exists() && $phoneExist->exists())
+                ($user && $phoneExist->exists() && $user->id != $phoneExist->first()->id)
+                || (!$user && $phoneExist->exists())
             ) {
                 return response()->json([
                     'errors' => [
@@ -74,6 +75,15 @@ class UserService
         if ($user->exists() && $user->deleted_by != null) {
             return response()->json([
                 'message' => 'This user is deleted'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function deletionAllowanceCheck(User $user)
+    {
+        if ($user->role < Auth::user()->role) {
+            return response()->json([
+                'message' => 'Can not delete user with higher role than you'
             ], Response::HTTP_BAD_REQUEST);
         }
     }

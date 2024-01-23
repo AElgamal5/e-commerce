@@ -59,10 +59,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'users'], function () {
                 Route::get('/', [UserController::class, 'index']);
-                Route::post('/', [UserController::class, 'store'])->middleware('store');
+                Route::post('/', [UserController::class, 'store']);
                 Route::get('/{user}', [UserController::class, 'show']);
-                Route::patch('/{user}', [UserController::class, 'update'])->middleware('update');
-                Route::delete('/{user}', [UserController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{user}', [UserController::class, 'update']);
+                Route::delete('/{user}', [UserController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'languages'], function () {

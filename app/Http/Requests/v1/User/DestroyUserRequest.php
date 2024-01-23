@@ -22,14 +22,6 @@ class DestroyUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'deletedBy' => ['required', 'integer', 'exists:users,id'],
-        ];
-    }
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'deleted_By' => $this->deletedBy,
-        ]);
+        return [];
     }
 }

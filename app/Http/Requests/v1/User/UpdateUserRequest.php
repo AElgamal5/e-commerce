@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\User;
 
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateUserRequest extends FormRequest
@@ -29,9 +30,7 @@ class UpdateUserRequest extends FormRequest
             'role' => ['sometimes', 'integer', Rule::in([0, 1, 2])],
             'password' => ['sometimes', 'string', 'min:8'],
             'phone' => ['sometimes', 'string'],
-
             'countryCode' => ['sometimes', 'string'],
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
@@ -43,7 +42,7 @@ class UpdateUserRequest extends FormRequest
         }
 
         $this->merge([
-            'updated_by' => $this->updatedBy,
+            'updated_by' => Auth::user()->id,
         ]);
     }
 }

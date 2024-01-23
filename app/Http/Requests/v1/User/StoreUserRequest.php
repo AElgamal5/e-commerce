@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\User;
 
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreUserRequest extends FormRequest
@@ -29,16 +30,14 @@ class StoreUserRequest extends FormRequest
             'role' => ['required', 'integer', Rule::in([0, 1, 2])],
             'password' => ['required', 'string', 'min:8'],
             'phone' => ['required', 'string'],
-
             'countryCode' => ['required', 'string'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
     {
 
         $this->merge([
-            'created_by' => $this->createdBy,
+            'created_by' => Auth::user()->id,
         ]);
 
         $this->merge([

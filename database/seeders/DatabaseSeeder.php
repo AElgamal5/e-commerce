@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Amir',
             'email' => 'amir@arkan.com',
             'password' => Hash::make('12345678'),
-            'role' => 2,
+            'role' => 1,
             'phone' => "1234567890",
             "country_code" => '+20',
             'created_by' => 1

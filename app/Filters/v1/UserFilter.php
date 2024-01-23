@@ -7,8 +7,8 @@ use App\Filters\ApiFilter;
 class UserFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'name' => ['eq'],
-        'email' => ['eq'],
+        'name' => ['eq', 'lk'],
+        'email' => ['eq', 'lk'],
         'role' => ['eq'],
         'phone' => ['eq'],
         'countryCode' => ['eq'],
