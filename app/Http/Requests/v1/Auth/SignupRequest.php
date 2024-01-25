@@ -36,6 +36,8 @@ class SignupRequest extends FormRequest
         $this->merge([
             'country_code' => $this->countryCode,
         ]);
+
+        $this->replace($this->only(['name', 'email', 'role', 'password', 'phone', 'country_code', 'countryCode']));
     }
 
     public function messages(): array

@@ -25,7 +25,7 @@ class UserService
                             'Email must be unique'
                         ]
                     ]
-                ], Response::HTTP_BAD_REQUEST);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
 
@@ -39,7 +39,7 @@ class UserService
                             'Phone is required'
                         ]
                     ]
-                ], Response::HTTP_BAD_REQUEST);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
             if (!$request->has('countryCode')) {
                 return response()->json([
@@ -48,7 +48,7 @@ class UserService
                             'Country code is required'
                         ]
                     ]
-                ], Response::HTTP_BAD_REQUEST);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             $phoneExist = User::where('deleted_by', null)
@@ -65,7 +65,7 @@ class UserService
                             'Phone must be unique in each country code'
                         ]
                     ]
-                ], Response::HTTP_BAD_REQUEST);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
     }

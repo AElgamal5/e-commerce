@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\api\v1;
 
 use Illuminate\Http\Response;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 
 use App\Models\User;
+
+use App\Services\v1\UserService;
 
 use App\Http\Requests\v1\Auth\LoginRequest;
 use App\Http\Requests\v1\Auth\SignupRequest;
@@ -15,14 +18,13 @@ use App\Http\Resources\v1\UserResource;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request, UserService $userService)
     {
         $user = User::where('email', '=', $request->email)->first();
 
-        if ($user->deleted_by || $user->deleted_at) {
-            return response()->json([
-                'message' => 'Your user has been deleted.',
-            ], 400);
+        $existenceCheck = $userService->existenceCheck($user);
+        if ($existenceCheck) {
+            return $existenceCheck;
         }
 
         if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
@@ -62,18 +64,23 @@ class AuthController extends Controller
         return response()->json(['message' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
     }
 
-    public function signup(SignupRequest $request)
+    public function signup(SignupRequest $request, UserService $userService)
     {
+
+        $uniquenessChecks = $userService->uniquenessChecks($request);
+        if ($uniquenessChecks) {
+            return $uniquenessChecks;
+        }
+
         User::create($request->all());
 
         return response()->json([
             'message' => "You have signed-up successfully"
         ], Response::HTTP_CREATED);
     }
-    public function logout()
+    public function logout(Request $request)
     {
-        //ignore errors here
-        Auth::user()->tokens()->delete();
+        $request->user()->tokens()->delete();
 
         return response()->json(['message' => 'Successfully logged out']);
     }

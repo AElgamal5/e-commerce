@@ -44,7 +44,7 @@ class UpdateUserRequest extends FormRequest
             'updated_by' => Auth::user()->id,
         ]);
 
-        //remove other fields form the request
-        $this->replace($this->only(['name', 'email', 'role', 'password', 'phone', 'country_code', 'updated_by']));
+        //filter the request
+        $this->replace($this->only(['name', 'email', 'role', 'password', 'phone', 'country_code', 'countryCode', 'updated_by']));
     }
 }
