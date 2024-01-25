@@ -7,7 +7,7 @@ use App\Filters\ApiFilter;
 class ColorTranslationFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'translationsName' => ['eq'],
+        'translationsName' => ['eq', 'lk'],
         'translationsCreatedBy' => ['eq'],
         'translationsUpdatedBy' => ['eq'],
         'translationsDeletedBy' => ['eq'],

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Color;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreColorRequest extends FormRequest
 {
@@ -23,12 +24,21 @@ class StoreColorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string', 'min:2', 'max:6'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
+            'code' => ['required', 'string', 'min:2', 'max:7'],
 
             'translations' => ['required', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],
             'translations.*.name' => ['required', 'string', 'min:2', 'max:25'],
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'created_by' => Auth::user()->id,
+        ]);
+
+        //filter the request
+        $this->replace($this->only(['code', 'created_by', 'translations']));
     }
 }

@@ -83,10 +83,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'colors'], function () {
                 Route::get('/', [ColorController::class, 'index']);
-                Route::post('/', [ColorController::class, 'store'])->middleware('store');
+                Route::post('/', [ColorController::class, 'store']);
                 Route::get('/{color}', [ColorController::class, 'show']);
-                Route::patch('/{color}', [ColorController::class, 'update'])->middleware('update');
-                Route::delete('/{color}', [ColorController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{color}', [ColorController::class, 'update']);
+                Route::delete('/{color}', [ColorController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'categories'], function () {

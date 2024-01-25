@@ -7,7 +7,7 @@ use App\Filters\ApiFilter;
 class ColorFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'code' => ['eq'],
+        'code' => ['eq', 'lk'],
         'createdBy' => ['eq'],
         'updatedBy' => ['eq'],
         'deletedBy' => ['eq'],

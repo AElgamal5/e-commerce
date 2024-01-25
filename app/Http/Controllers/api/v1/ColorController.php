@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 
 use App\Models\Color;
 use App\Models\Language;
@@ -32,7 +31,7 @@ class ColorController extends Controller
         $filter = new ColorFilter();
         $filterItems = $filter->transform($request);
 
-        $colors = Color::where('deleted_by', null)->where($filterItems);
+        $colors = Color::search($request->search)->where('deleted_by', null)->where($filterItems);
 
         //color translation filter
         $translationFilter = new ColorTranslationFilter();
@@ -73,7 +72,11 @@ class ColorController extends Controller
             }
         }
 
-        return new ColorCollection($colors->paginate()->appends($request->query()));
+        if ($request->pageSize == -1) {
+            return new ColorCollection($colors->get());
+        }
+
+        return new ColorCollection($colors->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(
@@ -91,20 +94,8 @@ class ColorController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
-
-        $color = Color::create([
-            'code' => $input['code'],
-            'created_by' => $input['createdBy'],
-        ]);
-
-        foreach ($input['translations'] as $trans) {
-            $color->translations()->create([
-                'language_id' => $trans['languageId'],
-                'name' => $trans['name'],
-                'created_by' => $input['createdBy'],
-            ]);
-        }
+        $color = Color::create($request->all());
+        $color->saveTranslations($request->all());
 
         return new ColorResource($color);
     }
@@ -174,46 +165,10 @@ class ColorController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
+        $color->update($request->all());
 
-        if (isset($input['code'])) {
-            $color->code = $input['code'];
-            $color->updated_by = $input['updatedBy'];
-        }
-        $color->save();
-
-        if (!isset($input['translations'])) {
-            return response()->json([
-                "message" => "Color updated successfully"
-            ]);
-        }
-
-        foreach ($input['translations'] as $trans) {
-
-            $translation = $color->translations()
-                ->where('language_id', $trans['languageId'])
-                ->first();
-
-            //if not exist , else if deleted, else need to update
-            if (!$translation) {
-                $color->translations()->create([
-                    'language_id' => $trans['languageId'],
-                    'name' => $trans['name'],
-                    'created_by' => $input['updatedBy'],
-                ]);
-            } elseif (!is_null($translation->deleted_by)) {
-                $translation->update([
-                    'name' => $trans['name'],
-                    'updated_by' => $input['updatedBy'],
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                ]);
-            } else {
-                $translation->update([
-                    'name' => $trans['name'],
-                    'updated_by' => $input['updatedBy']
-                ]);
-            }
+        if ($request->has('translations')) {
+            $color->updateTranslations($request->all());
         }
 
         return response()->json([
@@ -228,16 +183,8 @@ class ColorController extends Controller
             return $existenceErrors;
         }
 
-        $color->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
-        ColorTranslation::where('color_id', $color->id)->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
+        $color->update($request->all());
+        $color->deleteTranslations($request->all());
 
         return response()->json([
             'message' => 'Color deleted successfully',

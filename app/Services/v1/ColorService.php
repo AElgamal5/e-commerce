@@ -24,7 +24,7 @@ class ColorService
                             'Code must be unique'
                         ]
                     ]
-                ], Response::HTTP_BAD_REQUEST);
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
         }
     }

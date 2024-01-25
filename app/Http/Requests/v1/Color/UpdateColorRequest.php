@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\Color;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateColorRequest extends FormRequest
@@ -23,12 +24,21 @@ class UpdateColorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['sometimes', 'string', 'min:2', 'max:6'],
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
+            'code' => ['sometimes', 'string', 'min:2', 'max:7'],
 
             'translations' => ['sometimes', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],
             'translations.*.name' => ['required', 'string', 'min:2', 'max:25'],
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        $this->merge([
+            'updated_by' => Auth::user()->id,
+        ]);
+
+        //filter the request
+        $this->replace($this->only(['code', 'updated_by', 'translations']));
     }
 }
