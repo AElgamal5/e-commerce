@@ -97,10 +97,7 @@ class LanguageController extends Controller
             return $existenceErrors;
         }
 
-        $language->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
+        $language->update($request->all());
 
         return response()->json([
             'message' => 'Language deleted successfully',
