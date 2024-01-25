@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use function Laravel\Prompts\text;
+
 class Color extends Model
 {
     use HasFactory;
@@ -72,7 +74,6 @@ class Color extends Model
                 ->orWhereHas('translations', function ($query) use ($text) {
                     $query->where('name', 'like', "%$text%");
                 });
-            // ->orWhere('email', 'like', "%$text%");
         });
     }
 

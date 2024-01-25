@@ -11,7 +11,7 @@ class ImageService
 
     public function save(string $image): string|JsonResponse
     {
-        $maxFileSize = env('MAX_FILE_SIZE', 5);
+        $maxFileSize = env('MAX_FILE_SIZE', 10);
         $maxImageSize = $maxFileSize * 1000000;
 
         $imageData = base64_decode(preg_replace('/^data:image\/(\w+);base64,/', '', $image));
@@ -20,7 +20,7 @@ class ImageService
             return response()
                 ->json(
                     ['message' => "Image size exceeds maximum image size: {$maxFileSize}MB"],
-                    Response::HTTP_NOT_FOUND
+                    Response::HTTP_UNPROCESSABLE_ENTITY
                 );
         }
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 
 use App\Models\Category;
@@ -34,7 +33,7 @@ class CategoryController extends Controller
         $filter = new CategoryFilter();
         $filterItems = $filter->transform($request);
 
-        $categories = Category::where('deleted_by', null)->where($filterItems);
+        $categories = Category::search($request->search)->where('deleted_by', null)->where($filterItems);
 
         //category translation filter
         $translationFilter = new CategoryTranslationFilter();
@@ -75,7 +74,11 @@ class CategoryController extends Controller
             }
         }
 
-        return new CategoryCollection($categories->paginate()->appends($request->query()));
+        if ($request->pageSize == -1) {
+            return new CategoryCollection($categories->get());
+        }
+
+        return new CategoryCollection($categories->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(
@@ -88,27 +91,17 @@ class CategoryController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
-
         //save the image to the disk
-        $trickOrTreat = $imageService->save($input['image']);
+        $trickOrTreat = $imageService->save($request->image);
         if ($trickOrTreat instanceof JsonResponse) {
             return $trickOrTreat;
+        } else {
+            $request->merge(['image' => $trickOrTreat]);
         }
 
-        $category = Category::create([
-            'image' => $trickOrTreat ?? null,
-            'created_by' => $input['createdBy'],
-        ]);
+        $category = Category::create($request->all());
 
-        foreach ($input['translations'] as $trans) {
-            $category->translations()->create([
-                'language_id' => $trans['languageId'],
-                'name' => $trans['name'],
-                'description' => $trans['description'] ?? null,
-                'created_by' => $input['createdBy'],
-            ]);
-        }
+        $category->saveTranslations($request->all());
 
         return new CategoryResource($category);
     }
@@ -174,63 +167,19 @@ class CategoryController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
-
-        if (isset($input['image'])) {
+        if ($request->has('image')) {
             //delete the old image
             $imageService->delete($category->image);
             //save the new one
-            $imageName = $imageService->save($input['image']);
+            $imageName = $imageService->save($request->image);
 
-            $category->image = $imageName;
-            $category->updated_by = $input['updatedBy'];
-            $category->save();
+            $request->merge(['image' => $imageName]);
+
+            $category->update($request->all());
         }
 
-        if (!isset($input['translations'])) {
-            return response()->json([
-                "message" => "Category updated successfully"
-            ]);
-        }
-
-        foreach ($input['translations'] as $trans) {
-
-            $translation = $category->translations()
-                ->where('language_id', $trans['languageId'])
-                ->first();
-
-            //if not exist , else if deleted then respawn, else need to update
-            if (!$translation) {
-                //need at least name to create a new translation
-                if (!isset($trans['name'])) {
-                    return response()
-                        ->json(
-                            ['message' => "Name is required to create a new category translations"],
-                            Response::HTTP_NOT_FOUND
-                        );
-                }
-
-                $category->translations()->create([
-                    'language_id' => $trans['languageId'],
-                    'name' => $trans['name'],
-                    'description' => $trans['description'] ?? null,
-                    'created_by' => $input['updatedBy'],
-                ]);
-            } elseif (!is_null($translation->deleted_by)) {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy'],
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                ]);
-            } else {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy']
-                ]);
-            }
+        if ($request->has('translations')) {
+            $category->updateTranslations($request->all());
         }
 
         return response()->json([
@@ -251,20 +200,11 @@ class CategoryController extends Controller
 
         $imageService->delete($category->image);
 
-        $category->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
-        CategoryTranslation::where('category_id', $category->id)->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
+        $category->update($request->all());
+        $category->deleteTranslations($request->all());
 
         return response()->json([
             'message' => 'Category deleted successfully',
         ]);
-
     }
 }

@@ -91,10 +91,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'categories'], function () {
                 Route::get('/', [CategoryController::class, 'index']);
-                Route::post('/', [CategoryController::class, 'store'])->middleware('store');
+                Route::post('/', [CategoryController::class, 'store']);
                 Route::get('/{category}', [CategoryController::class, 'show']);
-                Route::patch('/{category}', [CategoryController::class, 'update'])->middleware('update');
-                Route::delete('/{category}', [CategoryController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{category}', [CategoryController::class, 'update']);
+                Route::delete('/{category}', [CategoryController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'tags'], function () {

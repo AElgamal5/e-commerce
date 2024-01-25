@@ -7,7 +7,8 @@ use App\Filters\ApiFilter;
 class CategoryTranslationFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'translationsName' => ['eq'],
+        'translationsName' => ['eq', 'lk'],
+        'translationsDescription' => ['lk'],
         'translationsCreatedBy' => ['eq'],
         'translationsUpdatedBy' => ['eq'],
         'translationsDeletedBy' => ['eq'],

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\Category;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateCategoryRequest extends FormRequest
@@ -25,12 +26,21 @@ class UpdateCategoryRequest extends FormRequest
 
         return [
             'image' => ['sometimes', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['sometimes', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],
             'translations.*.name' => ['sometimes', 'string', 'min:2', 'max:25'],
             'translations.*.description' => ['sometimes', 'string', 'min:2', 'max:250'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'updated_by' => Auth::user()->id,
+        ]);
+
+        //filter the request
+        $this->replace($this->only(['image', 'updated_by', 'translations']));
     }
 }

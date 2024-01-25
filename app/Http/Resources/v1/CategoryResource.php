@@ -16,7 +16,7 @@ class CategoryResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            "image" => $this->image,
+            "image" => $this->image ? url('storage/' . $this->image) : null,
             "createdBy" => $this->created_by,
             "updatedBy" => $this->updated_by,
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
