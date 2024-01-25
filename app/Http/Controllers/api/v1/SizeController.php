@@ -26,7 +26,7 @@ class SizeController extends Controller
         $filter = new SizeFilter();
         $filterItems = $filter->transform($request);
 
-        $sizes = Size::where('deleted_by', '=', null)->where($filterItems);
+        $sizes = Size::search($request->search)->where('deleted_by', '=', null)->where($filterItems);
 
         if ($request->query('createdByUser') == 'true') {
             $sizes = $sizes->with('createdByUser');
@@ -36,8 +36,11 @@ class SizeController extends Controller
             $sizes = $sizes->with('updatedByUser');
         }
 
+        if ($request->pageSize == -1) {
+            return new SizeCollection($sizes->get());
+        }
 
-        return new SizeCollection($sizes->paginate()->appends($request->query()));
+        return new SizeCollection($sizes->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(StoreSizeRequest $request, SizeService $sizeService)
@@ -94,10 +97,7 @@ class SizeController extends Controller
             return $existenceErrors;
         }
 
-        $size->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
+        $size->update($request->all());
 
         return response()->json([
             'message' => 'Size deleted successfully',

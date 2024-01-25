@@ -75,10 +75,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'sizes'], function () {
                 Route::get('/', [SizeController::class, 'index']);
-                Route::post('/', [SizeController::class, 'store'])->middleware('store');
+                Route::post('/', [SizeController::class, 'store']);
                 Route::get('/{size}', [SizeController::class, 'show']);
-                Route::patch('/{size}', [SizeController::class, 'update'])->middleware('update');
-                Route::delete('/{size}', [SizeController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{size}', [SizeController::class, 'update']);
+                Route::delete('/{size}', [SizeController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'colors'], function () {

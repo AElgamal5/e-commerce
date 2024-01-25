@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Size;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreSizeRequest extends FormRequest
 {
@@ -24,13 +25,12 @@ class StoreSizeRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string', 'min:2', 'max:6'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'created_by' => $this->createdBy,
+            'created_by' => Auth::user()->id,
         ]);
     }
 }

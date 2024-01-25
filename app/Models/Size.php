@@ -18,6 +18,11 @@ class Size extends Model
         'deleted_at',
     ];
 
+    public function scopeSearch($query, $text)
+    {
+        return $query->where('code', 'like', "%$text%");
+    }
+
     public function createdByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Size;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateSizeRequest extends FormRequest
 {
@@ -23,14 +24,16 @@ class UpdateSizeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['sometimes', 'string', 'min:2', 'max:6'],
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
+            'code' => ['required', 'string', 'min:2', 'max:6'],
         ];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'updated_by' => $this->updatedBy,
+            'updated_by' => Auth::user()->id,
         ]);
+
+        //filter the request
+        $this->replace($this->only(['code', 'updated_by']));
     }
 }
