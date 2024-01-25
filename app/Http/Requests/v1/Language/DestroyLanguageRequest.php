@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\Language;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DestroyLanguageRequest extends FormRequest
@@ -22,14 +23,18 @@ class DestroyLanguageRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'deletedBy' => ['required', 'integer', 'exists:users,id'],
-        ];
+        return [];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'deleted_by' => $this->deletedBy,
+            'deleted_by' => Auth::user()->id,
         ]);
+        $this->merge([
+            'deleted_at' => now(),
+        ]);
+
+        //filter the request
+        $this->replace($this->only(['deleted_by', 'deleted_at']));
     }
 }

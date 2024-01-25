@@ -67,10 +67,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'languages'], function () {
                 Route::get('/', [LanguageController::class, 'index']);
-                Route::post('/', [LanguageController::class, 'store'])->middleware('store');
+                Route::post('/', [LanguageController::class, 'store']);
                 Route::get('/{language}', [LanguageController::class, 'show']);
-                Route::patch('/{language}', [LanguageController::class, 'update'])->middleware('update');
-                Route::delete('/{language}', [LanguageController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{language}', [LanguageController::class, 'update']);
+                Route::delete('/{language}', [LanguageController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'sizes'], function () {

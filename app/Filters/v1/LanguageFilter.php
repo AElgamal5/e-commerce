@@ -7,7 +7,7 @@ use App\Filters\ApiFilter;
 class LanguageFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'name' => ['eq'],
+        'name' => ['eq', 'lk'],
         'code' => ['eq'],
         'createdBy' => ['eq'],
         'updatedBy' => ['eq'],

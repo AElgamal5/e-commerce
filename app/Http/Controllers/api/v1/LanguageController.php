@@ -26,7 +26,7 @@ class LanguageController extends Controller
         $filter = new LanguageFilter();
         $filterItems = $filter->transform($request);
 
-        $langs = Language::where('deleted_by', '=', null)->where($filterItems);
+        $langs = Language::search($request->search)->where('deleted_by', '=', null)->where($filterItems);
 
         if ($request->query('createdByUser') == 'true') {
             $langs = $langs->with('createdByUser');
@@ -36,8 +36,11 @@ class LanguageController extends Controller
             $langs = $langs->with('updatedByUser');
         }
 
+        if ($request->pageSize == -1) {
+            return new LanguageCollection($langs->get());
+        }
 
-        return new LanguageCollection($langs->paginate()->appends($request->query()));
+        return new LanguageCollection($langs->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(StoreLanguageRequest $request, LanguageService $languageService)

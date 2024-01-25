@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Language;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class UpdateLanguageRequest extends FormRequest
 {
@@ -25,13 +26,15 @@ class UpdateLanguageRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'min:2', 'max:20'],
             'code' => ['sometimes', 'string', 'min:2', 'max:4'],
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'updated_by' => $this->updatedBy,
+            'updated_by' => Auth::user()->id,
         ]);
+
+        //filter the request
+        $this->replace($this->only(['name', 'code', 'updated_by']));
     }
 }

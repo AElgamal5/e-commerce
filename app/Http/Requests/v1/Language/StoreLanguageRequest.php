@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Language;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreLanguageRequest extends FormRequest
 {
@@ -25,13 +26,12 @@ class StoreLanguageRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'min:2', 'max:20'],
             'code' => ['required', 'string', 'min:2', 'max:4'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'created_by' => $this->createdBy,
+            'created_by' => Auth::user()->id,
         ]);
     }
 }
