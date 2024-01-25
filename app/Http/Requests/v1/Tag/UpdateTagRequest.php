@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\Tag;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTagRequest extends FormRequest
@@ -22,14 +23,21 @@ class UpdateTagRequest extends FormRequest
      */
     public function rules(): array
     {
-
         return [
-            'updatedBy' => ['required', 'integer', 'exists:users,id'],
-
             'translations' => ['required', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],
             'translations.*.name' => ['sometimes', 'string', 'min:2', 'max:25'],
             'translations.*.description' => ['sometimes', 'string', 'min:2', 'max:250'],
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'updated_by' => Auth::user()->id,
+        ]);
+
+        //filter the request
+        $this->replace($this->only(['updated_by', 'translations']));
     }
 }

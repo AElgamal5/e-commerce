@@ -32,5 +32,8 @@ class StoreSizeRequest extends FormRequest
         $this->merge([
             'created_by' => Auth::user()->id,
         ]);
+
+        //filter the request
+        $this->replace($this->only(['created_by', 'code']));
     }
 }

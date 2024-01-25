@@ -33,6 +33,7 @@ class StoreUserRequest extends FormRequest
             'countryCode' => ['required', 'string'],
         ];
     }
+
     protected function prepareForValidation()
     {
         $this->merge([
@@ -42,5 +43,10 @@ class StoreUserRequest extends FormRequest
         $this->merge([
             'country_code' => $this->countryCode,
         ]);
+
+        //filter the request
+        $this->replace(
+            $this->only(['created_by', 'name', 'country_code', 'email', 'role', 'password', 'phone', 'countryCode'])
+        );
     }
 }

@@ -32,29 +32,29 @@ class TagController extends Controller
         $filter = new TagFilter();
         $filterItems = $filter->transform($request);
 
-        $categories = Tag::where('deleted_by', null)->where($filterItems);
+        $tags = Tag::search($request->search)->where('deleted_by', null)->where($filterItems);
 
         //tag translation filter
         $translationFilter = new TagTranslationFilter();
         $translationFilterItems = $translationFilter->transform($request);
         $tagTranslations = TagTranslation::where('deleted_by', null)->where($translationFilterItems)->get('tag_id');
-        $categories->whereIn('id', $tagTranslations->toArray());
+        $tags->whereIn('id', $tagTranslations->toArray());
 
         if ($request->query('createdByUser') == 'true') {
-            $categories = $categories->with('createdByUser');
+            $tags = $tags->with('createdByUser');
         }
 
         if ($request->query('updatedByUser') == 'true') {
-            $categories = $categories->with('updatedByUser');
+            $tags = $tags->with('updatedByUser');
         }
 
         if ($request->query('translations') == '*') {
-            $categories = $categories->with('translations.language');
+            $tags = $tags->with('translations.language');
         } elseif ($request->has('translations')) {
 
             $langId = $request->query('translations');
 
-            $categories = $categories->with([
+            $tags = $tags->with([
                 'translations' => function ($query) use ($langId) {
                     $query->where('language_id', $langId)->where('deleted_by', null);
                 }
@@ -65,7 +65,7 @@ class TagController extends Controller
             $language = $language ? $language->toArray() : null;
 
             if ($language) {
-                $categories = $categories->with([
+                $tags = $tags->with([
                     'translations' => function ($query) use ($language) {
                         $query->where('language_id', $language['id'])->where('deleted_by', null);
                     }
@@ -73,7 +73,11 @@ class TagController extends Controller
             }
         }
 
-        return new TagCollection($categories->paginate()->appends($request->query()));
+        if ($request->pageSize == -1) {
+            return new TagCollection($tags->get());
+        }
+
+        return new TagCollection($tags->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(
@@ -85,20 +89,9 @@ class TagController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
+        $tag = Tag::create($request->all());
 
-        $tag = Tag::create([
-            'created_by' => $input['createdBy'],
-        ]);
-
-        foreach ($input['translations'] as $trans) {
-            $tag->translations()->create([
-                'language_id' => $trans['languageId'],
-                'name' => $trans['name'],
-                'description' => $trans['description'] ?? null,
-                'created_by' => $input['createdBy'],
-            ]);
-        }
+        $tag->saveTranslations($request->all());
 
         return new TagResource($tag);
     }
@@ -163,56 +156,8 @@ class TagController extends Controller
             return $translationsErrors;
         }
 
-        $input = $request->all();
-
-        if (!isset($input['translations'])) {
-            return response()->json([
-                "message" => "Tag updated successfully"
-            ]);
-        }
-
-        foreach ($input['translations'] as $trans) {
-
-            $translation = $tag->translations()
-                ->where('language_id', $trans['languageId'])
-                ->first();
-
-            //if not exist , else if deleted then respawn, else need to update
-            if (!$translation) {
-                //need at least name to create a new translation
-                if (!isset($trans['name'])) {
-                    return response()
-                        ->json(
-                            ['message' => "Name is required to create a new tag translations"],
-                            Response::HTTP_NOT_FOUND
-                        );
-                }
-
-                $tag->translations()->create([
-                    'language_id' => $trans['languageId'],
-                    'name' => $trans['name'],
-                    'description' => $trans['description'] ?? null,
-                    'created_by' => $input['updatedBy'],
-                ]);
-            } elseif (!is_null($translation->deleted_by)) {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy'],
-                    'deleted_by' => null,
-                    'deleted_at' => null,
-                ]);
-            } else {
-                $translation->update([
-                    'name' => $trans['name'] ?? $translation->name,
-                    'description' => $trans['description'] ?? $translation->description,
-                    'updated_by' => $input['updatedBy']
-                ]);
-            }
-        }
-
-        $tag->updated_by = $input['updatedBy'];
-        $tag->save();
+        $tag->updateTranslations($request->all());
+        $tag->update($request->all());
 
         return response()->json([
             "message" => "Tag updated successfully"
@@ -229,16 +174,8 @@ class TagController extends Controller
             return $existenceErrors;
         }
 
-        $tag->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
-        TagTranslation::where('tag_id', $tag->id)->update([
-            'deleted_by' => $request->json('deletedBy'),
-            'deleted_at' => now(),
-        ]);
-
+        $tag->update($request->all());
+        $tag->deleteTranslations($request->all());
 
         return response()->json([
             'message' => 'Tag deleted successfully',

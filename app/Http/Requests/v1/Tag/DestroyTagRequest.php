@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\Tag;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DestroyTagRequest extends FormRequest
@@ -22,14 +23,17 @@ class DestroyTagRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'deletedBy' => ['required', 'integer', 'exists:users,id'],
-        ];
+        return [];
     }
+
     protected function prepareForValidation()
     {
         $this->merge([
-            'deleted_by' => $this->deletedBy,
+            'deleted_by' => Auth::user()->id,
+            'deleted_at' => now(),
         ]);
+
+        //filter the request
+        $this->replace($this->only(['deleted_at', 'deleted_by']));
     }
 }

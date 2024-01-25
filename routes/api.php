@@ -99,10 +99,10 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'tags'], function () {
                 Route::get('/', [TagController::class, 'index']);
-                Route::post('/', [TagController::class, 'store'])->middleware('store');
+                Route::post('/', [TagController::class, 'store']);
                 Route::get('/{tag}', [TagController::class, 'show']);
-                Route::patch('/{tag}', [TagController::class, 'update'])->middleware('update');
-                Route::delete('/{tag}', [TagController::class, 'destroy'])->middleware('destroy');
+                Route::patch('/{tag}', [TagController::class, 'update']);
+                Route::delete('/{tag}', [TagController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'products'], function () {
