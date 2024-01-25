@@ -16,8 +16,8 @@ class AdvertisementResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            "text" => $this->text,
-            "image" => $this->image,
+            "name" => $this->name,
+            "image" => $this->image ? url('storage/' . $this->image) : null,
             "link" => $this->link,
             "status" => $this->status,
             "createdBy" => $this->created_by,

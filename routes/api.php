@@ -12,6 +12,7 @@ use App\Http\Controllers\api\v1\CategoryController;
 use App\Http\Controllers\api\v1\TagController;
 use App\Http\Controllers\api\v1\ProductController;
 use App\Http\Controllers\api\v1\ContactUsController;
+use App\Http\Controllers\api\v1\AdvertisementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -109,6 +110,14 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::get('/', [ContactUsController::class, 'index']);
                 Route::get('/{contactUs}', [ContactUsController::class, 'show']);
                 Route::delete('/{contactUs}', [ContactUsController::class, 'destroy']);
+            });
+
+            Route::group(['prefix' => 'advertisements'], function () {
+                Route::get('/', [AdvertisementController::class, 'index']);
+                Route::post('/', [AdvertisementController::class, 'store']);
+                Route::get('/{advertisement}', [AdvertisementController::class, 'show']);
+                Route::patch('/{advertisement}', [AdvertisementController::class, 'update']);
+                Route::delete('/{advertisement}', [AdvertisementController::class, 'destroy']);
             });
 
             Route::group(['prefix' => 'products'], function () {

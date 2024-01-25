@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Advertisement;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreAdvertisementRequest extends FormRequest
 {
@@ -23,18 +24,20 @@ class StoreAdvertisementRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'text' => ['sometimes', 'string', 'min:2', 'max:250'],
-            'image' => ['sometimes', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
+            'name' => ['sometimes', 'string', 'min:2', 'max:250'],
+            'image' => ['required', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
             'link' => ['sometimes', 'string', 'url', 'max:250'],
             'status' => ['sometimes', 'boolean'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
         ];
     }
 
     protected function prepareForValidation()
     {
         $this->merge([
-            'created_by' => $this->createdBy,
+            'created_by' => Auth::user()->id,
         ]);
+
+        //filter the request
+        $this->replace($this->only(['created_by', 'name', 'image', 'link', 'status']));
     }
 }

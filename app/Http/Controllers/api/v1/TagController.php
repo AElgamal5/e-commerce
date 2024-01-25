@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use Illuminate\Http\Response;
+use App\Http\Controllers\Controller;
 
 use App\Models\Tag;
 use App\Models\Language;
-use App\Filters\v1\TagFilter;
-
 use App\Models\TagTranslation;
-use App\Http\Controllers\Controller;
 
 use App\Services\v1\TagService;
 use App\Services\v1\LanguageService;
 
 use App\Http\Resources\v1\TagResource;
-use App\Filters\v1\TagTranslationFilter;
 use App\Http\Resources\v1\TagCollection;
+
+use App\Filters\v1\TagTranslationFilter;
+use App\Filters\v1\TagFilter;
+
 use App\Http\Requests\v1\Tag\ShowTagRequest;
 use App\Http\Requests\v1\Tag\IndexTagRequest;
-
 use App\Http\Requests\v1\Tag\StoreTagRequest;
 use App\Http\Requests\v1\Tag\UpdateTagRequest;
 use App\Http\Requests\v1\Tag\DestroyTagRequest;

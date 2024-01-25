@@ -11,7 +11,7 @@ class Advertisement extends Model
     use HasFactory;
 
     protected $fillable = [
-        'text',
+        'name',
         'image',
         'link',
         'status',
@@ -21,6 +21,14 @@ class Advertisement extends Model
         'deleted_by',
         'deleted_at',
     ];
+
+    public function scopeSearch($query, $text)
+    {
+        return $query->where(function ($query) use ($text) {
+            $query->where('name', 'like', "%$text%")
+                ->orWhere('link', 'like', "%$text%");
+        });
+    }
 
     public function createdByUser(): BelongsTo
     {

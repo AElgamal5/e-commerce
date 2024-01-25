@@ -7,9 +7,9 @@ use App\Filters\ApiFilter;
 class AdvertisementFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'text' => ['eq'],
+        'name' => ['eq', 'lk'],
         'status' => ['eq'],
-        'link' => ['eq'],
+        'link' => ['eq', 'lk'],
         'createdBy' => ['eq'],
         'updatedBy' => ['eq'],
         'deletedBy' => ['eq'],
