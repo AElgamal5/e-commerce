@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\v1\User;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -27,7 +26,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string'],
             'email' => ['sometimes', 'string', 'email'],
-            'role' => ['sometimes', 'integer', Rule::in([0, 1, 2])],
+            'role' => ['sometimes', 'integer', 'in:0,1,2'],
             'password' => ['sometimes', 'string', 'min:8'],
             'phone' => ['sometimes', 'string'],
             'countryCode' => ['sometimes', 'string'],
@@ -44,5 +43,8 @@ class UpdateUserRequest extends FormRequest
         $this->merge([
             'updated_by' => Auth::user()->id,
         ]);
+
+        //remove other fields form the request
+        $this->replace($this->only(['name', 'email', 'role', 'password', 'phone', 'country_code', 'updated_by']));
     }
 }

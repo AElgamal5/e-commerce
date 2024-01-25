@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\api\v1;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
 
 use App\Models\User;
 
@@ -102,10 +101,7 @@ class UserController extends Controller
 
         $user->tokens()->delete();
 
-        $user->update([
-            'deleted_by' => Auth::user()->id,
-            'deleted_at' => now(),
-        ]);
+        $user->update($request->all());
 
         return response()->json([
             'message' => 'User deleted successfully',

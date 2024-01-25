@@ -35,7 +35,6 @@ class StoreUserRequest extends FormRequest
     }
     protected function prepareForValidation()
     {
-
         $this->merge([
             'created_by' => Auth::user()->id,
         ]);

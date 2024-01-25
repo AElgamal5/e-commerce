@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\v1\User;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Http\FormRequest;
 
 class DestroyUserRequest extends FormRequest
@@ -23,5 +24,17 @@ class DestroyUserRequest extends FormRequest
     public function rules(): array
     {
         return [];
+    }
+    protected function prepareForValidation()
+    {
+        $this->merge([
+            'deleted_by' => Auth::user()->id,
+        ]);
+        $this->merge([
+            'deleted_at' => now(),
+        ]);
+
+        //remove other fields form the request
+        $this->replace($this->only(['deleted_at', 'deleted_by']));
     }
 }
