@@ -36,5 +36,8 @@ class StoreContactUsRequest extends FormRequest
         $this->merge([
             'country_code' => $this->countryCode,
         ]);
+
+        //filter the request
+        $this->replace($this->only('name', 'email', 'phone', 'country_code', 'title', 'description', 'countryCode'));
     }
 }

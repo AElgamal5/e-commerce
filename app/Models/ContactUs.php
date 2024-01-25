@@ -19,4 +19,16 @@ class ContactUs extends Model
         'title',
         'description',
     ];
+
+    public function scopeSearch($query, $text)
+    {
+        return $query->where(function ($query) use ($text) {
+            $query->where('name', 'like', "%$text%")
+                ->orWhere('email', 'like', "%$text%")
+                ->orWhere('phone', 'like', "%$text%")
+                ->orWhere('country_code', 'like', "%$text%")
+                ->orWhere('title', 'like', "%$text%")
+                ->orWhere('description', 'like', "%$text%");
+        });
+    }
 }

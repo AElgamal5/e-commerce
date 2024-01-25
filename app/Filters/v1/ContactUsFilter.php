@@ -7,12 +7,12 @@ use App\Filters\ApiFilter;
 class ContactUsFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'name' => ['eq'],
-        'email' => ['eq'],
-        'phone' => ['eq'],
-        'countryCode' => ['eq'],
-        'title' => ['eq'],
-        'description' => ['eq'],
+        'name' => ['eq', 'lk'],
+        'email' => ['eq', 'lk'],
+        'phone' => ['eq', 'lk'],
+        'countryCode' => ['eq', 'lk'],
+        'title' => ['eq', 'lk'],
+        'description' => ['eq', 'lk'],
     ];
 
     protected $columnMap = [

@@ -105,6 +105,12 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::delete('/{tag}', [TagController::class, 'destroy']);
             });
 
+            Route::group(['prefix' => 'contactUs'], function () {
+                Route::get('/', [ContactUsController::class, 'index']);
+                Route::get('/{contactUs}', [ContactUsController::class, 'show']);
+                Route::delete('/{contactUs}', [ContactUsController::class, 'destroy']);
+            });
+
             Route::group(['prefix' => 'products'], function () {
                 Route::get('/', [ProductController::class, 'index']);
                 Route::post('/', [ProductController::class, 'store'])->middleware('store');
@@ -112,14 +118,6 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::patch('/{product}', [ProductController::class, 'update'])->middleware('update');
                 Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('destroy');
             });
-
-            Route::group(['prefix' => 'contactUs'], function () {
-                Route::get('/', [ContactUsController::class, 'index']);
-                Route::get('/{contactUs}', [ContactUsController::class, 'show']);
-                Route::patch('/{contactUs}', [ContactUsController::class, 'update']);
-                Route::delete('/{contactUs}', [ContactUsController::class, 'destroy']);
-            });
-
         });
 
     });

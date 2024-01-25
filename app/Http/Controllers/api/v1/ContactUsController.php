@@ -23,9 +23,13 @@ class ContactUsController extends Controller
     {
         $filter = new ContactUsFilter();
         $filterItems = $filter->transform($request);
-        $contactUs = ContactUs::where($filterItems);
+        $contactUs = ContactUs::search($request->search)->where($filterItems);
 
-        return new ContactUsCollection($contactUs->paginate()->appends($request->query()));
+        if ($request->pageSize == -1) {
+            return new ContactUsCollection($contactUs->get());
+        }
+
+        return new ContactUsCollection($contactUs->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(StoreContactUsRequest $request)
