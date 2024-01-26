@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreProductRequest extends FormRequest
 {
@@ -33,7 +34,6 @@ class StoreProductRequest extends FormRequest
             'initialQuantity' => ['required', 'integer', 'min:1'],
             'currentQuantity' => ['sometimes', 'integer', 'min:1'],
             'categoryId' => ['required', 'integer', 'exists:categories,id'],
-            'createdBy' => ['required', 'integer', 'exists:users,id'],
 
             'translations' => ['required', 'array', 'min:1'],
             'translations.*.languageId' => ['required', 'integer', 'exists:languages,id'],
@@ -48,36 +48,46 @@ class StoreProductRequest extends FormRequest
     {
 
         $this->merge([
-            'created_by' => $this->createdBy,
-        ]);
-        $this->merge([
+            'created_by' => Auth::user()->id,
             'category_id' => $this->categoryId,
+            'initial_quantity' => $this->initialQuantity,
+            'discount_type' => $this->discountType ? $this->discountType : null,
+            'discount_value' => $this->discountValue ? $this->discountValue : null,
+            'year' => $this->year ? $this->year : date("Y"),
+            'status' => $this->status ? $this->status : 1,
         ]);
 
-        if ($this->discountType) {
-            $this->merge([
-                'discount_type' => $this->discountType,
-            ]);
-        }
-        if ($this->discountValue) {
-            $this->merge([
-                'discount_value' => $this->discountValue,
-            ]);
-        }
-        if ($this->initialQuantity) {
-            $this->merge([
-                'initial_quantity' => $this->initialQuantity,
-            ]);
-        }
-        if ($this->currentQuantity) {
-            $this->merge([
-                'current_quantity' => $this->currentQuantity,
-            ]);
-        } else {
+        if (!$this->has('currentQuantity')) {
             $this->merge([
                 'current_quantity' => $this->initialQuantity,
             ]);
+        } else {
+            $this->merge([
+                'current_quantity' => $this->currentQuantity,
+            ]);
         }
 
+        //filter the request
+        $this->replace(
+            $this->only([
+                'status',
+                'year',
+                'price',
+                'discountType',
+                'discount_type',
+                'discountValue',
+                'discount_value',
+                'initialQuantity',
+                'initial_quantity',
+                'currentQuantity',
+                'current_quantity',
+                'categoryId',
+                'category_id',
+                'created_by',
+
+                'translations',
+                'tags',
+            ])
+        );
     }
 }

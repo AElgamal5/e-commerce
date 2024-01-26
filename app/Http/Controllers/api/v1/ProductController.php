@@ -9,16 +9,19 @@ use App\Models\Product;
 use App\Models\Language;
 use App\Models\ProductTranslation;
 use App\Models\ProductTag;
+use App\Models\ProductImage;
 
 use App\Filters\v1\ProductFilter;
 use App\Filters\v1\ProductTranslationFilter;
 use App\Filters\v1\ProductTagFilter;
+use App\Filters\v1\ProductImageFilter;
 
 
 use App\Services\v1\ProductService;
 use App\Services\v1\LanguageService;
 use App\Services\v1\CategoryService;
 use App\Services\v1\TagService;
+use App\Services\v1\ImageService;
 
 use App\Http\Resources\v1\ProductResource;
 use App\Http\Resources\v1\ProductCollection;
@@ -28,6 +31,8 @@ use App\Http\Requests\v1\Product\IndexProductRequest;
 use App\Http\Requests\v1\Product\StoreProductRequest;
 use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
+use App\Http\Requests\v1\Product\AddImagesToProductRequest;
+use App\Http\Requests\v1\Product\DeleteImagesFromProductRequest;
 
 class ProductController extends Controller
 {
@@ -50,6 +55,12 @@ class ProductController extends Controller
         $tagFilterItems = $tagFilter->transform($request);
         $productTags = ProductTag::where('deleted_by', null)->where($tagFilterItems)->get('product_id');
         $products->whereIn('id', $productTags->toArray());
+
+        //product image filter
+        $tagFilter = new ProductImageFilter();
+        $productImageFilterItems = $tagFilter->transform($request);
+        $productImages = ProductImage::where('deleted_by', null)->where($productImageFilterItems)->get('product_id');
+        $products->whereIn('id', $productImages->toArray());
 
         if ($request->query('createdByUser') == 'true') {
             $products = $products->with('createdByUser');
@@ -119,6 +130,24 @@ class ProductController extends Controller
 
         }
 
+        if ($request->query('images') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $products = $products->with([
+                        'images.color.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        }
+                    ]);
+                }
+            } else {
+                $products = $products->with('images.color.translations');
+            }
+
+        }
+
         return new ProductCollection($products->paginate()->appends($request->query()));
     }
 
@@ -126,7 +155,7 @@ class ProductController extends Controller
         StoreProductRequest $request,
         LanguageService $languageService,
         CategoryService $categoryService,
-        TagService $tagService
+        TagService $tagService,
     ) {
         $translationsErrors = $languageService->translationsCheck($request);
         if ($translationsErrors) {
@@ -161,14 +190,14 @@ class ProductController extends Controller
                 'language_id' => $trans['languageId'],
                 'name' => $trans['name'],
                 'description' => $trans['description'] ?? null,
-                'created_by' => $input['createdBy'],
+                'created_by' => $input['created_by'],
             ]);
         }
 
         foreach ($input['tags'] as $tag) {
             $product->tags()->create([
                 'tag_id' => $tag,
-                'created_by' => $input['createdBy'],
+                'created_by' => $input['created_by'],
             ]);
         }
 
@@ -254,6 +283,24 @@ class ProductController extends Controller
 
         }
 
+        if ($request->query('images') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $product = $product->loadMissing([
+                        'images.color.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        }
+                    ]);
+                }
+            } else {
+                $product = $product->loadMissing('images.color.translations');
+            }
+
+        }
+
         return new ProductResource($product);
     }
 
@@ -330,13 +377,13 @@ class ProductController extends Controller
                         'language_id' => $trans['languageId'],
                         'name' => $trans['name'],
                         'description' => $trans['description'] ?? null,
-                        'created_by' => $input['updatedBy'],
+                        'created_by' => $input['updated_by'],
                     ]);
                 } elseif (!is_null($translation->deleted_by)) {
                     $translation->update([
                         'name' => $trans['name'] ?? $translation->name,
                         'description' => $trans['description'] ?? $translation->description,
-                        'updated_by' => $input['updatedBy'],
+                        'updated_by' => $input['updated_by'],
                         'deleted_by' => null,
                         'deleted_at' => null,
                     ]);
@@ -344,22 +391,18 @@ class ProductController extends Controller
                     $translation->update([
                         'name' => $trans['name'] ?? $translation->name,
                         'description' => $trans['description'] ?? $translation->description,
-                        'updated_by' => $input['updatedBy']
+                        'updated_by' => $input['updated_by']
                     ]);
                 }
             }
         }
 
-        //[1,2, ......]
-        //get all product tags
-        //if not exist in arr delete
-        //check on array to create new tags and respawn if deleted
         if (isset($input['tags'])) {
             $product->tags()->delete();
             foreach ($input['tags'] as $tagId) {
                 $product->tags()->create([
                     'tag_id' => $tagId,
-                    'created_by' => $input['updatedBy'],
+                    'created_by' => $input['updated_by'],
                 ]);
             }
         }
@@ -372,32 +415,87 @@ class ProductController extends Controller
     public function destroy(
         DestroyProductRequest $request,
         Product $product,
-        ProductService $productService
+        ProductService $productService,
+        ImageService $imageService,
     ) {
         $existenceErrors = $productService->existenceCheck($product);
         if ($existenceErrors) {
             return $existenceErrors;
         }
 
-        $product->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->update($request->all());
 
-        ProductTranslation::where('product_id', $product->id)->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->tags()->update($request->all());
 
-        ProductTag::where('product_id', $product->id)->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->translations()->update($request->all());
 
+        foreach ($product->images()->get() as $image) {
+            $imageService->delete($image->image);
+        }
+
+        $product->images()->delete();
 
         return response()->json([
             'message' => 'Product deleted successfully',
         ]);
 
+    }
+
+    public function addImages(
+        AddImagesToProductRequest $request,
+        Product $product,
+        ProductService $productService,
+        ImageService $imageService,
+    ) {
+        $existenceErrors = $productService->existenceCheck($product);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        foreach ($request->images as $image) {
+            $imageSizeErrors = $imageService->checkOnly($image['content']);
+            if ($imageSizeErrors) {
+                return $imageSizeErrors;
+            }
+        }
+
+        $input = $request->all();
+
+        foreach ($input['images'] as $image) {
+            $imageName = $imageService->saveOnly($image['content']);
+            $product->images()->create([
+                'color_id' => $image['colorId'] ?? null,
+                'image' => $imageName,
+                'created_by' => $request->updated_by,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Images added to the product successfully',
+        ]);
+    }
+
+    public function deleteImages(
+        DeleteImagesFromProductRequest $request,
+        Product $product,
+        ProductService $productService,
+        ImageService $imageService,
+    ) {
+        $existenceErrors = $productService->existenceCheck($product);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        $input = $request->all();
+
+        foreach ($input['images'] as $image) {
+            $imageService->delete($product->images()->where('id', $image)->first()->image);
+            $product->images()->where('id', $image)->delete();
+        }
+        $product->update(['updated_by' => $input['updated_by']]);
+
+        return response()->json([
+            'message' => 'Images deleted from the product successfully',
+        ]);
     }
 }

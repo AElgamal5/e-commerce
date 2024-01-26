@@ -5,7 +5,7 @@ namespace App\Http\Requests\v1\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class DestroyProductRequest extends FormRequest
+class AddImagesToProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,16 +23,24 @@ class DestroyProductRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return [
+            'images' => ['required', 'array', 'min:1'],
+            'images.*.content' => ['required', 'string', 'starts_with:data:image/jpeg;base64,data:image/jpg;base64,data:image/png;base64'],
+            'images.*.colorId' => ['sometimes', 'integer', 'exists:colors,id'],
+        ];
     }
     protected function prepareForValidation()
     {
         $this->merge([
-            'deleted_by' => Auth::user()->id,
-            'deleted_at' => now(),
+            'updated_by' => Auth::user()->id,
         ]);
 
         //filter the request
-        $this->replace($this->only(['deleted_by', 'deleted_at']));
+        $this->replace(
+            $this->only([
+                'updated_by',
+                'images',
+            ])
+        );
     }
 }

@@ -10,21 +10,21 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('products_tags', function (Blueprint $table) {
+        Schema::create('products_images', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->unsignedBigInteger('tag_id');
+            $table->unsignedBigInteger('color_id')->nullable();
+            $table->string('image');
 
             $table->unsignedBigInteger('created_by');
-            $table->unsignedBigInteger('deleted_by');
 
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
 
+
             $table->foreign('product_id')->references('id')->on('products');
-            $table->foreign('tag_id')->references('id')->on('tags');
+            $table->foreign('color_id')->references('id')->on('colors');
             $table->foreign('created_by')->references('id')->on('users');
-            $table->foreign('deleted_by')->references('id')->on('users');
         });
     }
 
@@ -33,6 +33,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('products_tags');
+        Schema::dropIfExists('products_images');
     }
 };

@@ -34,6 +34,7 @@ class ProductResource extends JsonResource
             'translations' => new ProductTranslationsCollection($this->whenLoaded('translations')),
             'tags' => new ProductTagCollection($this->whenLoaded('tags')),
             'category' => new CategoryResource($this->whenLoaded('category')),
+            'images' => new ProductImageCollection($this->whenLoaded('images')),
         ];
     }
 }
