@@ -125,7 +125,7 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::post('/', [ProductController::class, 'store']);
                 Route::get('/{product}', [ProductController::class, 'show']);
                 Route::patch('/{product}', [ProductController::class, 'update']);
-                Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('destroy');
+                Route::delete('/{product}', [ProductController::class, 'destroy']);
                 Route::post('/{product}/images/add', [ProductController::class, 'addImages']);
                 Route::post('/{product}/images/delete', [ProductController::class, 'deleteImages']);
             });

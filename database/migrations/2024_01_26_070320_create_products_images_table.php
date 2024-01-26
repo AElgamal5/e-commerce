@@ -18,8 +18,8 @@ return new class extends Migration {
 
             $table->unsignedBigInteger('created_by');
 
-            $table->dateTime('deleted_at')->nullable();
             $table->timestamps();
+            $table->dateTime('deleted_at')->nullable();
 
 
             $table->foreign('product_id')->references('id')->on('products');

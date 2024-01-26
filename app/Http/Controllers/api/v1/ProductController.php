@@ -415,28 +415,25 @@ class ProductController extends Controller
     public function destroy(
         DestroyProductRequest $request,
         Product $product,
-        ProductService $productService
+        ProductService $productService,
+        ImageService $imageService,
     ) {
         $existenceErrors = $productService->existenceCheck($product);
         if ($existenceErrors) {
             return $existenceErrors;
         }
 
-        $product->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->update($request->all());
 
-        ProductTranslation::where('product_id', $product->id)->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->tags()->update($request->all());
 
-        ProductTag::where('product_id', $product->id)->update([
-            'deleted_by' => $request->deletedBy,
-            'deleted_at' => now(),
-        ]);
+        $product->translations()->update($request->all());
 
+        foreach ($product->images()->get() as $image) {
+            $imageService->delete($image->image);
+        }
+
+        $product->images()->delete();
 
         return response()->json([
             'message' => 'Product deleted successfully',

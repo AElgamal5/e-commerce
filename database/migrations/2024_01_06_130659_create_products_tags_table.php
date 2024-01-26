@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('tag_id');
 
             $table->unsignedBigInteger('created_by');
+            $table->unsignedBigInteger('deleted_by');
 
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();
@@ -23,6 +24,7 @@ return new class extends Migration {
             $table->foreign('product_id')->references('id')->on('products');
             $table->foreign('tag_id')->references('id')->on('tags');
             $table->foreign('created_by')->references('id')->on('users');
+            $table->foreign('deleted_by')->references('id')->on('users');
         });
     }
 
