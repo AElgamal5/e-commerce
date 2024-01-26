@@ -3,6 +3,7 @@
 namespace App\Http\Requests\v1\Product;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 use function PHPUnit\Framework\isNull;
 
@@ -35,7 +36,6 @@ class UpdateProductRequest extends FormRequest
             'initialQuantity' => ['sometimes', 'integer', 'min:1'],
             'currentQuantity' => ['sometimes', 'integer', 'min:1'],
             'categoryId' => ['sometimes', 'integer', 'exists:categories,id'],
-            'updatedBy' => ['sometimes', 'integer', 'exists:users,id'],
 
             'translations' => ['sometimes', 'array', 'min:1'],
             'translations.*.languageId' => ['sometimes', 'integer', 'exists:languages,id'],
@@ -48,9 +48,8 @@ class UpdateProductRequest extends FormRequest
     }
     protected function prepareForValidation()
     {
-
         $this->merge([
-            'updated_by' => $this->updatedBy,
+            'updated_by' => Auth::user()->id,
         ]);
 
         if ($this->categoryId) {

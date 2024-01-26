@@ -30,6 +30,33 @@ class ImageService
 
         return $imageName;
     }
+
+    public function checkOnly(string $image)
+    {
+        $maxFileSize = env('MAX_FILE_SIZE', 5);
+        $maxImageSize = $maxFileSize * 1000000;
+
+        $imageData = base64_decode(preg_replace('/^data:image\/(\w+);base64,/', '', $image));
+
+        if (strlen($imageData) > $maxImageSize) {
+            return response()
+                ->json(
+                    ['message' => "Image size exceeds maximum image size: {$maxFileSize}MB"],
+                    Response::HTTP_UNPROCESSABLE_ENTITY
+                );
+        }
+    }
+
+    public function saveOnly(string $image): string
+    {
+        $imageData = base64_decode(preg_replace('/^data:image\/(\w+);base64,/', '', $image));
+        $uniqueId = uniqid();
+        $imageName = time() . '_' . $uniqueId . '.png';
+        Storage::disk('public')->put($imageName, $imageData);
+
+        return $imageName;
+    }
+
     public function delete(string $imageName): void
     {
         if (Storage::disk('public')->exists($imageName)) {

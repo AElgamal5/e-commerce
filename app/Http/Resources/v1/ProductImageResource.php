@@ -5,23 +5,23 @@ namespace App\Http\Resources\v1;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductTagResource extends JsonResource
+class ProductImageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request)
+    public function toArray(Request $request): array
     {
         return [
             "id" => $this->id,
-            // "productId" => $this->product_id,
-            // "tagId" => $this->tag_id,
+            "colorId" => $this->color_id,
+            "image" => url('storage/' . $this->image),
             "createdBy" => $this->created_by,
+
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
-            'tag' => new TagResource($this->whenLoaded('tag')),
+            'color' => new ColorResource($this->whenLoaded('color')),
         ];
-        // return new TagResource($this->whenLoaded('tag'));
     }
 }

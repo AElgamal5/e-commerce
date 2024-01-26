@@ -122,10 +122,12 @@ Route::group(['prefix' => 'v1'], function () {
 
             Route::group(['prefix' => 'products'], function () {
                 Route::get('/', [ProductController::class, 'index']);
-                Route::post('/', [ProductController::class, 'store'])->middleware('store');
+                Route::post('/', [ProductController::class, 'store']);
                 Route::get('/{product}', [ProductController::class, 'show']);
-                Route::patch('/{product}', [ProductController::class, 'update'])->middleware('update');
+                Route::patch('/{product}', [ProductController::class, 'update']);
                 Route::delete('/{product}', [ProductController::class, 'destroy'])->middleware('destroy');
+                Route::post('/{product}/images/add', [ProductController::class, 'addImages']);
+                Route::post('/{product}/images/delete', [ProductController::class, 'deleteImages']);
             });
         });
 
