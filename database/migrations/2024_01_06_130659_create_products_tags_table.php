@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('tag_id');
 
             $table->unsignedBigInteger('created_by');
-            $table->unsignedBigInteger('deleted_by');
+            $table->unsignedBigInteger('deleted_by')->nullable();
 
             $table->timestamps();
             $table->dateTime('deleted_at')->nullable();

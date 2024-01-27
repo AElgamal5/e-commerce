@@ -18,7 +18,6 @@ class ProductQuantity extends Model
         'size_id',
         'initial_quantity',
         'current_quantity',
-        'image',
 
         'created_by',
         'updated_by',

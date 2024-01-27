@@ -33,8 +33,14 @@ class SizeService
     {
         if ($size->exists() && $size->deleted_by != null) {
             return response()->json([
-                'message' => 'This size is deleted'
+                'message' => "This size:$size->id is deleted"
             ], Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    public function existenceCheckById(int $sizeId)
+    {
+        $size = Size::findOrFail($sizeId);
+        return $this->existenceCheck($size);
     }
 }

@@ -7,10 +7,10 @@ use App\Filters\ApiFilter;
 class ProductImageFilter extends ApiFilter
 {
     protected $allowedParams = [
-        'colorId' => ['eq', 'ne'],
+        'imageColorId' => ['eq', 'ne'],
     ];
 
     protected $columnMap = [
-        'colorId' => 'color_id',
+        'imageColorId' => 'color_id',
     ];
 }

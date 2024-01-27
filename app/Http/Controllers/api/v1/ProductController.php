@@ -10,11 +10,13 @@ use App\Models\Language;
 use App\Models\ProductTranslation;
 use App\Models\ProductTag;
 use App\Models\ProductImage;
+use App\Models\ProductQuantity;
 
 use App\Filters\v1\ProductFilter;
 use App\Filters\v1\ProductTranslationFilter;
 use App\Filters\v1\ProductTagFilter;
 use App\Filters\v1\ProductImageFilter;
+use App\Filters\v1\ProductQuantityFilter;
 
 
 use App\Services\v1\ProductService;
@@ -22,6 +24,8 @@ use App\Services\v1\LanguageService;
 use App\Services\v1\CategoryService;
 use App\Services\v1\TagService;
 use App\Services\v1\ImageService;
+use App\Services\v1\ColorService;
+use App\Services\v1\SizeService;
 
 use App\Http\Resources\v1\ProductResource;
 use App\Http\Resources\v1\ProductCollection;
@@ -33,6 +37,8 @@ use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
 use App\Http\Requests\v1\Product\AddImagesToProductRequest;
 use App\Http\Requests\v1\Product\DeleteImagesFromProductRequest;
+use App\Http\Requests\v1\Product\AddQuantitiesToProductRequest;
+use App\Http\Requests\v1\Product\deleteQuantitiesToProductRequest;
 
 class ProductController extends Controller
 {
@@ -47,20 +53,35 @@ class ProductController extends Controller
         //product translation filter
         $translationFilter = new ProductTranslationFilter();
         $translationFilterItems = $translationFilter->transform($request);
-        $productTranslations = ProductTranslation::where('deleted_by', null)->where($translationFilterItems)->get('product_id');
-        $products->whereIn('id', $productTranslations->toArray());
+        if (count($translationFilterItems)) {
+            $productTranslations = ProductTranslation::where('deleted_by', null)->where($translationFilterItems)->get('product_id');
+            $products->whereIn('id', $productTranslations->toArray());
+        }
 
         //product tag filter
         $tagFilter = new ProductTagFilter();
         $tagFilterItems = $tagFilter->transform($request);
-        $productTags = ProductTag::where('deleted_by', null)->where($tagFilterItems)->get('product_id');
-        $products->whereIn('id', $productTags->toArray());
+        if (count($tagFilterItems)) {
+            $productTags = ProductTag::where('deleted_by', null)->where($tagFilterItems)->get('product_id');
+            $products->whereIn('id', $productTags->toArray());
+        }
 
         //product image filter
         $tagFilter = new ProductImageFilter();
         $productImageFilterItems = $tagFilter->transform($request);
-        $productImages = ProductImage::where('deleted_by', null)->where($productImageFilterItems)->get('product_id');
-        $products->whereIn('id', $productImages->toArray());
+        if (count($productImageFilterItems)) {
+            $productImages = ProductImage::where($productImageFilterItems)->get('product_id');
+            $products->whereIn('id', $productImages->toArray());
+        }
+
+        //product image filter
+        $tagFilter = new ProductQuantityFilter();
+        $productQuantitiesFilterItems = $tagFilter->transform($request);
+        if (count($productQuantitiesFilterItems)) {
+            $productQuantities = ProductQuantity::where('deleted_by', null)->where($productQuantitiesFilterItems)->get('product_id');
+            $products->whereIn('id', $productQuantities->toArray());
+        }
+
 
         if ($request->query('createdByUser') == 'true') {
             $products = $products->with('createdByUser');
@@ -148,7 +169,30 @@ class ProductController extends Controller
 
         }
 
-        return new ProductCollection($products->paginate()->appends($request->query()));
+        if ($request->query('quantities') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $products = $products->with([
+                        'quantities.color.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        },
+                        'quantities.size'
+                    ]);
+                }
+            } else {
+                $products = $products->with(['quantities.color.translations', 'quantities.size']);
+            }
+
+        }
+
+        if ($request->pageSize == -1) {
+            return new ProductCollection($products->get());
+        }
+
+        return new ProductCollection($products->paginate($request->pageSize)->appends($request->query()));
     }
 
     public function store(
@@ -297,6 +341,25 @@ class ProductController extends Controller
                 }
             } else {
                 $product = $product->loadMissing('images.color.translations');
+            }
+
+        }
+
+        if ($request->query('quantities') == 'true') {
+            if ($request->has('lang')) {
+                $langCode = $request->query('lang');
+                $language = Language::where('code', $langCode)->where('deleted_by', null)->first();
+                $language = $language ? $language->toArray() : null;
+                if ($language) {
+                    $product = $product->loadMissing([
+                        'quantities.color.translations' => function ($query) use ($language) {
+                            $query->where('language_id', $language['id'])->where('deleted_by', null);
+                        },
+                        'quantities.size'
+                    ]);
+                }
+            } else {
+                $product = $product->loadMissing(['quantities.color.translations', 'quantities.size']);
             }
 
         }
@@ -496,6 +559,68 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Images deleted from the product successfully',
+        ]);
+    }
+
+    public function addQuantities(
+        AddQuantitiesToProductRequest $request,
+        Product $product,
+        ProductService $productService,
+        ColorService $colorService,
+        SizeService $sizeService,
+    ) {
+
+        $existenceErrors = $productService->existenceCheck($product);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        foreach ($request->quantities as $quantity) {
+            $existenceErrors = $colorService->existenceCheckById($quantity['colorId']);
+            if ($existenceErrors) {
+                return $existenceErrors;
+            }
+            if (!isset($quantity['sizeId'])) {
+                continue;
+            }
+            $existenceErrors = $sizeService->existenceCheckById($quantity['sizeId']);
+            if ($existenceErrors) {
+                return $existenceErrors;
+            }
+        }
+
+        foreach ($request->quantities as $quantity) {
+            $product->quantities()->create([
+                'color_id' => $quantity['colorId'],
+                'size_id' => $quantity['sizeId'] ?? null,
+                'initial_quantity' => $quantity['initialQuantity'],
+                'current_quantity' => $quantity['initialQuantity'],
+                'created_by' => $request->created_by
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Quantities added to the product successfully',
+        ]);
+    }
+
+    public function deleteQuantities(
+        deleteQuantitiesToProductRequest $request,
+        Product $product,
+        ProductService $productService,
+    ) {
+
+        $existenceErrors = $productService->existenceCheck($product);
+        if ($existenceErrors) {
+            return $existenceErrors;
+        }
+
+        foreach ($request->quantities as $quantity) {
+            $product->quantities()->where('id', $quantity)->delete();
+        }
+
+        return response()->json([
+            'message' => 'Quantities deleted to the product successfully',
         ]);
     }
 }
