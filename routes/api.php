@@ -126,8 +126,12 @@ Route::group(['prefix' => 'v1'], function () {
                 Route::get('/{product}', [ProductController::class, 'show']);
                 Route::patch('/{product}', [ProductController::class, 'update']);
                 Route::delete('/{product}', [ProductController::class, 'destroy']);
+
                 Route::post('/{product}/images/add', [ProductController::class, 'addImages']);
-                Route::post('/{product}/images/delete', [ProductController::class, 'deleteImages']);
+                Route::delete('/{product}/images/delete', [ProductController::class, 'deleteImages']);
+
+                Route::post('/{product}/quantities/add', [ProductController::class, 'addQuantities']);
+                Route::delete('/{product}/quantities/delete', [ProductController::class, 'deleteQuantities']);
             });
         });
 

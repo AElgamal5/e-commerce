@@ -20,7 +20,6 @@ class ProductQuantityResource extends JsonResource
             "sizeId" => $this->size_id,
             "initialQuantity" => $this->initial_quantity,
             "currentQuantity" => $this->current_quantity,
-            "image" => $this->image,
 
             'createdByUser' => new UserResource($this->whenLoaded('createdByUser')),
             'updatedByUser' => new UserResource($this->whenLoaded('updatedByUser')),

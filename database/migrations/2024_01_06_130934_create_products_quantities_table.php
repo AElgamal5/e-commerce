@@ -14,10 +14,9 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('color_id');
-            $table->unsignedBigInteger('size_id');
+            $table->unsignedBigInteger('size_id')->nullable();
             $table->integer('initial_quantity');
             $table->integer('current_quantity');
-            $table->string('image');
 
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('updated_by')->nullable();

@@ -33,8 +33,14 @@ class ColorService
     {
         if ($color->exists() && $color->deleted_by != null) {
             return response()->json([
-                'message' => 'This color is deleted'
+                'message' => "This color:$color->id is deleted"
             ], Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    public function existenceCheckById(int $colorId)
+    {
+        $color = Color::findOrFail($colorId);
+        return $this->existenceCheck($color);
     }
 }
