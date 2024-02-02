@@ -2,53 +2,58 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use Illuminate\Http\Response;
-use App\Http\Controllers\Controller;
-
 use App\Models\Product;
 use App\Models\Language;
-use App\Models\ProductTranslation;
 use App\Models\ProductTag;
 use App\Models\ProductImage;
-use App\Models\ProductQuantity;
+use Illuminate\Support\Facades\Redis;
 
+use Illuminate\Http\Response;
+use App\Models\ProductQuantity;
+use App\Services\v1\TagService;
+use App\Services\v1\SizeService;
 use App\Filters\v1\ProductFilter;
-use App\Filters\v1\ProductTranslationFilter;
+use App\Services\v1\ColorService;
+
+use App\Services\v1\ImageService;
+use App\Models\ProductTranslation;
+use App\Services\v1\ProductService;
 use App\Filters\v1\ProductTagFilter;
+use App\Http\Controllers\Controller;
+use App\Services\v1\CategoryService;
+use App\Services\v1\LanguageService;
+
 use App\Filters\v1\ProductImageFilter;
 use App\Filters\v1\ProductQuantityFilter;
 
-
-use App\Services\v1\ProductService;
-use App\Services\v1\LanguageService;
-use App\Services\v1\CategoryService;
-use App\Services\v1\TagService;
-use App\Services\v1\ImageService;
-use App\Services\v1\ColorService;
-use App\Services\v1\SizeService;
-
 use App\Http\Resources\v1\ProductResource;
+use App\Filters\v1\ProductTranslationFilter;
 use App\Http\Resources\v1\ProductCollection;
-
 use App\Http\Requests\v1\Product\ShowProductRequest;
 use App\Http\Requests\v1\Product\IndexProductRequest;
 use App\Http\Requests\v1\Product\StoreProductRequest;
 use App\Http\Requests\v1\Product\UpdateProductRequest;
 use App\Http\Requests\v1\Product\DestroyProductRequest;
 use App\Http\Requests\v1\Product\AddImagesToProductRequest;
-use App\Http\Requests\v1\Product\DeleteImagesFromProductRequest;
 use App\Http\Requests\v1\Product\AddQuantitiesToProductRequest;
+use App\Http\Requests\v1\Product\DeleteImagesFromProductRequest;
 use App\Http\Requests\v1\Product\deleteQuantitiesToProductRequest;
 
 class ProductController extends Controller
 {
     public function index(IndexProductRequest $request)
     {
+        $key = $this->generateCacheKey('products', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $products = Redis::get($key);
+            return unserialize($products);
+        }
+
         //product filter
         $filter = new ProductFilter();
         $filterItems = $filter->transform($request);
-
-        $products = Product::where('deleted_by', null)->where($filterItems);
+        $products = $products = Product::where('deleted_by', null)->where($filterItems);
 
         //product translation filter
         $translationFilter = new ProductTranslationFilter();
@@ -81,7 +86,6 @@ class ProductController extends Controller
             $productQuantities = ProductQuantity::where('deleted_by', null)->where($productQuantitiesFilterItems)->get('product_id');
             $products->whereIn('id', $productQuantities->toArray());
         }
-
 
         if ($request->query('createdByUser') == 'true') {
             $products = $products->with('createdByUser');
@@ -185,14 +189,17 @@ class ProductController extends Controller
             } else {
                 $products = $products->with(['quantities.color.translations', 'quantities.size']);
             }
-
         }
 
         if ($request->pageSize == -1) {
-            return new ProductCollection($products->get());
+            $products = new ProductCollection($products->get());
+            Redis::set($key, serialize($products));
+        } else {
+            $products = new ProductCollection($products->paginate($request->pageSize)->appends($request->query()));
+            Redis::set($key, serialize($products));
         }
 
-        return new ProductCollection($products->paginate($request->pageSize)->appends($request->query()));
+        return $products;
     }
 
     public function store(
@@ -258,6 +265,14 @@ class ProductController extends Controller
         if ($existenceErrors) {
             return $existenceErrors;
         }
+
+        $key = $this->generateCacheKeyForOne('products', $product->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
+        }
+
 
         if ($request->query('createdByUser') == 'true') {
             $product = $product->loadMissing('createdByUser');
@@ -364,7 +379,10 @@ class ProductController extends Controller
 
         }
 
-        return new ProductResource($product);
+        $result = new ProductResource($product);
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(
