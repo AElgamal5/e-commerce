@@ -2,31 +2,40 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Http\Controllers\Controller;
-
 use App\Models\Color;
+
 use App\Models\Language;
+use App\Filters\v1\ColorFilter;
 use App\Models\ColorTranslation;
 
-use App\Filters\v1\ColorFilter;
-use App\Filters\v1\ColorTranslationFilter;
+use App\Services\v1\ColorService;
+use App\Http\Controllers\Controller;
 
-use App\Http\Resources\v1\ColorCollection;
+use App\Services\v1\LanguageService;
+use Illuminate\Support\Facades\Redis;
+
 use App\Http\Resources\v1\ColorResource;
-
-use App\Http\Requests\v1\Color\IndexColorRequest;
-use App\Http\Requests\v1\Color\StoreColorRequest;
+use App\Filters\v1\ColorTranslationFilter;
+use App\Http\Resources\v1\ColorCollection;
 use App\Http\Requests\v1\Color\ShowColorRequest;
+use App\Http\Requests\v1\Color\IndexColorRequest;
+
+use App\Http\Requests\v1\Color\StoreColorRequest;
 use App\Http\Requests\v1\Color\UpdateColorRequest;
 use App\Http\Requests\v1\Color\DestroyColorRequest;
-
-use App\Services\v1\ColorService;
-use App\Services\v1\LanguageService;
 
 class ColorController extends Controller
 {
     public function index(IndexColorRequest $request)
     {
+
+        $key = $this->generateCacheKey('colors', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $colors = Redis::get($key);
+            return unserialize($colors);
+        }
+
         //color filter
         $filter = new ColorFilter();
         $filterItems = $filter->transform($request);
@@ -73,10 +82,14 @@ class ColorController extends Controller
         }
 
         if ($request->pageSize == -1) {
-            return new ColorCollection($colors->get());
+            $colors = new ColorCollection($colors->get());
+        } else {
+            $colors = new ColorCollection($colors->paginate($request->pageSize)->appends($request->query()));
         }
 
-        return new ColorCollection($colors->paginate($request->pageSize)->appends($request->query()));
+        Redis::set($key, serialize($colors));
+
+        return $colors;
     }
 
     public function store(
@@ -106,6 +119,13 @@ class ColorController extends Controller
         $existenceErrors = $colorService->existenceCheck($color);
         if ($existenceErrors) {
             return $existenceErrors;
+        }
+
+        $key = $this->generateCacheKeyForOne('colors', $color->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
         }
 
         if ($request->query('createdByUser') == 'true') {
@@ -141,7 +161,11 @@ class ColorController extends Controller
             }
         }
 
-        return new ColorResource($color);
+        $result = new ColorResource($color);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(
