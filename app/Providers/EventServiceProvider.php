@@ -2,22 +2,24 @@
 
 namespace App\Providers;
 
-use App\Models\Category;
+use App\Models\Tag;
+use App\Models\Size;
+use App\Models\User;
 use App\Models\Color;
+use App\Models\Product;
+use App\Models\Category;
+use App\Models\Language;
+use App\Observers\TagObserver;
+use App\Observers\SizeObserver;
+use App\Observers\UserObserver;
+use App\Observers\ColorObserver;
+use App\Observers\ProductObserver;
+use App\Observers\CategoryObserver;
+use App\Observers\LanguageObserver;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
-use App\Models\Language;
-use App\Models\Product;
-use App\Models\Size;
-use App\Models\User;
-use App\Observers\CategoryObserver;
-use App\Observers\ColorObserver;
-use App\Observers\LanguageObserver;
-use App\Observers\ProductObserver;
-use App\Observers\SizeObserver;
-use App\Observers\UserObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -43,6 +45,7 @@ class EventServiceProvider extends ServiceProvider
         Size::observe(SizeObserver::class);
         Color::observe(ColorObserver::class);
         Category::observe(CategoryObserver::class);
+        Tag::observe(TagObserver::class);
     }
 
     /**

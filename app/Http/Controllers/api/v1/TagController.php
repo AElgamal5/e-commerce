@@ -2,21 +2,17 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Http\Controllers\Controller;
-
 use App\Models\Tag;
 use App\Models\Language;
-use App\Models\TagTranslation;
-
-use App\Services\v1\TagService;
-use App\Services\v1\LanguageService;
-
-use App\Http\Resources\v1\TagResource;
-use App\Http\Resources\v1\TagCollection;
-
-use App\Filters\v1\TagTranslationFilter;
 use App\Filters\v1\TagFilter;
-
+use App\Models\TagTranslation;
+use App\Services\v1\TagService;
+use App\Http\Controllers\Controller;
+use App\Services\v1\LanguageService;
+use Illuminate\Support\Facades\Redis;
+use App\Http\Resources\v1\TagResource;
+use App\Filters\v1\TagTranslationFilter;
+use App\Http\Resources\v1\TagCollection;
 use App\Http\Requests\v1\Tag\ShowTagRequest;
 use App\Http\Requests\v1\Tag\IndexTagRequest;
 use App\Http\Requests\v1\Tag\StoreTagRequest;
@@ -27,6 +23,14 @@ class TagController extends Controller
 {
     public function index(IndexTagRequest $request)
     {
+
+        $key = $this->generateCacheKey('tags', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $tags = Redis::get($key);
+            return unserialize($tags);
+        }
+
         //tag filter
         $filter = new TagFilter();
         $filterItems = $filter->transform($request);
@@ -73,10 +77,14 @@ class TagController extends Controller
         }
 
         if ($request->pageSize == -1) {
-            return new TagCollection($tags->get());
+            $tags = new TagCollection($tags->get());
+        } else {
+            $tags = new TagCollection($tags->paginate($request->pageSize)->appends($request->query()));
         }
 
-        return new TagCollection($tags->paginate($request->pageSize)->appends($request->query()));
+        Redis::set($key, serialize($tags));
+
+        return $tags;
     }
 
     public function store(
@@ -101,6 +109,13 @@ class TagController extends Controller
         $existenceErrors = $tagService->existenceCheck($tag);
         if ($existenceErrors) {
             return $existenceErrors;
+        }
+
+        $key = $this->generateCacheKeyForOne('tags', $tag->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
         }
 
         if ($request->query('createdByUser') == 'true') {
@@ -136,7 +151,11 @@ class TagController extends Controller
             }
         }
 
-        return new TagResource($tag);
+        $result = new TagResource($tag);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(
