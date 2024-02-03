@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Http\Controllers\Controller;
-
 use App\Models\User;
 
 use App\Filters\v1\UserFilter;
 
 use App\Services\v1\UserService;
 
-use App\Http\Resources\v1\UserResource;
-use App\Http\Resources\v1\UserCollection;
+use App\Http\Controllers\Controller;
 
+use Illuminate\Support\Facades\Redis;
+use App\Http\Resources\v1\UserResource;
+
+use App\Http\Resources\v1\UserCollection;
 use App\Http\Requests\v1\User\ShowUserRequest;
 use App\Http\Requests\v1\User\IndexUserRequest;
 use App\Http\Requests\v1\User\StoreUserRequest;
@@ -23,6 +24,13 @@ class UserController extends Controller
 {
     public function index(IndexUserRequest $request)
     {
+        $key = $this->generateCacheKey('users', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $users = Redis::get($key);
+            return unserialize($users);
+        }
+
 
         $filter = new UserFilter();
         $filterItems = $filter->transform($request);
@@ -36,10 +44,13 @@ class UserController extends Controller
         }
 
         if ($request->pageSize == -1) {
-            return new UserCollection($users->get());
+            $users = new UserCollection($users->get());
+        } else {
+            $users = new UserCollection($users->paginate($request->pageSize)->appends($request->query()));
         }
+        Redis::set($key, serialize($users));
 
-        return new UserCollection($users->paginate($request->pageSize)->appends($request->query()));
+        return $users;
     }
 
     public function store(StoreUserRequest $request, UserService $userService)
@@ -59,6 +70,13 @@ class UserController extends Controller
             return $existenceCheck;
         }
 
+        $key = $this->generateCacheKeyForOne('users', $user->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $user = $user->with('createdByUser');
         }
@@ -66,7 +84,11 @@ class UserController extends Controller
             $user = $user->with('updatedByUser');
         }
 
-        return new UserResource($user);
+        $result = new UserResource($user);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(UpdateUserRequest $request, User $user, UserService $userService)

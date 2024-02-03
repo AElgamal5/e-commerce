@@ -6,15 +6,12 @@ use App\Models\Product;
 use App\Models\Language;
 use App\Models\ProductTag;
 use App\Models\ProductImage;
-use Illuminate\Support\Facades\Redis;
-
 use Illuminate\Http\Response;
 use App\Models\ProductQuantity;
 use App\Services\v1\TagService;
 use App\Services\v1\SizeService;
 use App\Filters\v1\ProductFilter;
 use App\Services\v1\ColorService;
-
 use App\Services\v1\ImageService;
 use App\Models\ProductTranslation;
 use App\Services\v1\ProductService;
@@ -22,10 +19,9 @@ use App\Filters\v1\ProductTagFilter;
 use App\Http\Controllers\Controller;
 use App\Services\v1\CategoryService;
 use App\Services\v1\LanguageService;
-
+use Illuminate\Support\Facades\Redis;
 use App\Filters\v1\ProductImageFilter;
 use App\Filters\v1\ProductQuantityFilter;
-
 use App\Http\Resources\v1\ProductResource;
 use App\Filters\v1\ProductTranslationFilter;
 use App\Http\Resources\v1\ProductCollection;
@@ -193,11 +189,11 @@ class ProductController extends Controller
 
         if ($request->pageSize == -1) {
             $products = new ProductCollection($products->get());
-            Redis::set($key, serialize($products));
         } else {
             $products = new ProductCollection($products->paginate($request->pageSize)->appends($request->query()));
-            Redis::set($key, serialize($products));
         }
+
+        Redis::set($key, serialize($products));
 
         return $products;
     }
@@ -380,6 +376,7 @@ class ProductController extends Controller
         }
 
         $result = new ProductResource($product);
+
         Redis::set($key, serialize($result));
 
         return $result;

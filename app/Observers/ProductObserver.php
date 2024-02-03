@@ -2,42 +2,30 @@
 
 namespace App\Observers;
 
-use App\Models\Product;
-use Illuminate\Support\Facades\Redis;
-
-class ProductObserver
+class ProductObserver extends Observer
 {
-    private function deletedCachedProducts()
-    {
-        // Redis::flushall();
-        $keysToDelete = Redis::keys('*products*');
-        for ($i = 0; $i < count($keysToDelete); $i++) {
-            //key starts with 'laravel_database_'
-            Redis::del(substr($keysToDelete[$i], 17));
-        }
-    }
 
     /**
      * Handle the Product "created" event.
      */
-    public function created(Product $product): void
+    public function created(): void
     {
-        $this->deletedCachedProducts();
+        $this->deletedCache('products');
     }
 
     /**
      * Handle the Product "updated" event.
      */
-    public function updated(Product $product): void
+    public function updated(): void
     {
-        $this->deletedCachedProducts();
+        $this->deletedCache('products');
     }
 
     /**
      * Handle the Product "deleted" event.
      */
-    public function deleted(Product $product): void
+    public function deleted(): void
     {
-        $this->deletedCachedProducts();
+        $this->deletedCache('products');
     }
 }
