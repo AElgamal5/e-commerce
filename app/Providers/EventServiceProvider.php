@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Language;
 use App\Models\ContactUs;
+use App\Models\Advertisement;
 use App\Observers\TagObserver;
 use App\Observers\SizeObserver;
 use App\Observers\UserObserver;
@@ -20,6 +21,7 @@ use App\Observers\LanguageObserver;
 use App\Observers\ContactUsObserver;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
+use App\Observers\AdvertisementObserver;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -49,6 +51,7 @@ class EventServiceProvider extends ServiceProvider
         Category::observe(CategoryObserver::class);
         Tag::observe(TagObserver::class);
         ContactUs::observe(ContactUsObserver::class);
+        Advertisement::observe(AdvertisementObserver::class);
     }
 
     /**

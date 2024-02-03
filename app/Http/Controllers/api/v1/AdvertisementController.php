@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers\api\v1;
 
+use App\Models\Advertisement;
+use App\Services\v1\ImageService;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-
-use App\Models\Advertisement;
+use Illuminate\Support\Facades\Redis;
 use App\Filters\v1\AdvertisementFilter;
-
-use App\Services\v1\ImageService;
-
 use App\Http\Resources\v1\AdvertisementResource;
 use App\Http\Resources\v1\AdvertisementCollection;
-
 use App\Http\Requests\v1\Advertisement\ShowAdvertisementRequest;
 use App\Http\Requests\v1\Advertisement\IndexAdvertisementRequest;
 use App\Http\Requests\v1\Advertisement\StoreAdvertisementRequest;
@@ -23,6 +20,14 @@ class AdvertisementController extends Controller
 {
     public function index(IndexAdvertisementRequest $request)
     {
+
+        $key = $this->generateCacheKey('advertisements', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $advertisements = Redis::get($key);
+            return unserialize($advertisements);
+        }
+
         //advertisement filter
         $filter = new AdvertisementFilter();
         $filterItems = $filter->transform($request);
@@ -39,10 +44,14 @@ class AdvertisementController extends Controller
         }
 
         if ($request->pageSize == -1) {
-            return new AdvertisementCollection($advertisements->get());
+            $advertisements = new AdvertisementCollection($advertisements->get());
+        } else {
+            $advertisements = new AdvertisementCollection($advertisements->paginate($request->pageSize)->appends($request->query()));
         }
 
-        return new AdvertisementCollection($advertisements->paginate($request->pageSize)->appends($request->query()));
+        Redis::set($key, serialize($advertisements));
+
+        return $advertisements;
     }
 
     public function store(
@@ -67,6 +76,14 @@ class AdvertisementController extends Controller
         ShowAdvertisementRequest $request,
         Advertisement $advertisement,
     ) {
+
+        $key = $this->generateCacheKeyForOne('advertisements', $advertisement->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $advertisement = $advertisement->loadMissing('createdByUser');
         }
@@ -75,7 +92,11 @@ class AdvertisementController extends Controller
             $advertisement = $advertisement->loadMissing('updatedByUser');
         }
 
-        return new AdvertisementResource($advertisement);
+        $result = new AdvertisementResource($advertisement);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(
