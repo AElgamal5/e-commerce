@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use App\Http\Controllers\Controller;
-
 use App\Models\ContactUs;
-
 use App\Filters\v1\ContactUsFilter;
-
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Redis;
 use App\Http\Resources\v1\ContactUsResource;
 use App\Http\Resources\v1\ContactUsCollection;
-
 use App\Http\Requests\v1\ContactUs\ShowContactUsRequest;
 use App\Http\Requests\v1\ContactUs\IndexContactUsRequest;
 use App\Http\Requests\v1\ContactUs\StoreContactUsRequest;
@@ -21,15 +18,28 @@ class ContactUsController extends Controller
 {
     public function index(IndexContactUsRequest $request)
     {
+
+        $key = $this->generateCacheKey('contact_us', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $contactUs = Redis::get($key);
+            return unserialize($contactUs);
+        }
+
         $filter = new ContactUsFilter();
         $filterItems = $filter->transform($request);
         $contactUs = ContactUs::search($request->search)->where($filterItems);
 
         if ($request->pageSize == -1) {
-            return new ContactUsCollection($contactUs->get());
+            $contactUs = new ContactUsCollection($contactUs->get());
+        } else {
+            $contactUs = new ContactUsCollection($contactUs->paginate($request->pageSize)->appends($request->query()));
         }
 
-        return new ContactUsCollection($contactUs->paginate($request->pageSize)->appends($request->query()));
+        Redis::set($key, serialize($contactUs));
+
+        return $contactUs;
+
     }
 
     public function store(StoreContactUsRequest $request)
@@ -39,7 +49,18 @@ class ContactUsController extends Controller
 
     public function show(ShowContactUsRequest $request, ContactUs $contactUs)
     {
-        return new ContactUsResource($contactUs);
+        $key = $this->generateCacheKeyForOne('contact_us', $contactUs->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
+        }
+
+        $result = new ContactUsResource($contactUs);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function destroy(DestroyContactUsRequest $request, ContactUs $contactUs)
