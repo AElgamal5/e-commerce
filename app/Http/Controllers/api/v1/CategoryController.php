@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers\api\v1;
 
-use Illuminate\Http\JsonResponse;
-use App\Http\Controllers\Controller;
-
 use App\Models\Category;
 use App\Models\Language;
 
-use App\Filters\v1\CategoryFilter;
-use App\Filters\v1\CategoryTranslationFilter;
+use App\Services\v1\ImageService;
+use Illuminate\Http\JsonResponse;
 
+use App\Filters\v1\CategoryFilter;
 use App\Models\CategoryTranslation;
+
+use App\Http\Controllers\Controller;
 
 use App\Services\v1\CategoryService;
 use App\Services\v1\LanguageService;
-use App\Services\v1\ImageService;
+use Illuminate\Support\Facades\Redis;
 
 use App\Http\Resources\v1\CategoryResource;
-use App\Http\Resources\v1\CategoryCollection;
+use App\Filters\v1\CategoryTranslationFilter;
 
+use App\Http\Resources\v1\CategoryCollection;
 use App\Http\Requests\v1\Category\ShowCategoryRequest;
 use App\Http\Requests\v1\Category\IndexCategoryRequest;
 use App\Http\Requests\v1\Category\StoreCategoryRequest;
@@ -30,6 +31,14 @@ class CategoryController extends Controller
 {
     public function index(IndexCategoryRequest $request)
     {
+
+        $key = $this->generateCacheKey('categories', $request->page ?? 1, $request->PageSize ?? 15, $request->all());
+
+        if (Redis::exists($key)) {
+            $categories = Redis::get($key);
+            return unserialize($categories);
+        }
+
         //category filter
         $filter = new CategoryFilter();
         $filterItems = $filter->transform($request);
@@ -76,10 +85,14 @@ class CategoryController extends Controller
         }
 
         if ($request->pageSize == -1) {
-            return new CategoryCollection($categories->get());
+            $categories = new CategoryCollection($categories->get());
+        } else {
+            $categories = new CategoryCollection($categories->paginate($request->pageSize)->appends($request->query()));
         }
 
-        return new CategoryCollection($categories->paginate($request->pageSize)->appends($request->query()));
+        Redis::set($key, serialize($categories));
+
+        return $categories;
     }
 
     public function store(
@@ -115,6 +128,13 @@ class CategoryController extends Controller
             return $existenceErrors;
         }
 
+        $key = $this->generateCacheKeyForOne('categories', $category->id, $request->all());
+
+        if (Redis::exists($key)) {
+            $result = Redis::get($key);
+            return unserialize($result);
+        }
+
         if ($request->query('createdByUser') == 'true') {
             $category = $category->loadMissing('createdByUser');
         }
@@ -148,7 +168,11 @@ class CategoryController extends Controller
             }
         }
 
-        return new CategoryResource($category);
+        $result = new CategoryResource($category);
+
+        Redis::set($key, serialize($result));
+
+        return $result;
     }
 
     public function update(

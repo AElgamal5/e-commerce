@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Category;
 use App\Models\Color;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -11,6 +12,7 @@ use App\Models\Language;
 use App\Models\Product;
 use App\Models\Size;
 use App\Models\User;
+use App\Observers\CategoryObserver;
 use App\Observers\ColorObserver;
 use App\Observers\LanguageObserver;
 use App\Observers\ProductObserver;
@@ -40,6 +42,7 @@ class EventServiceProvider extends ServiceProvider
         Language::observe(LanguageObserver::class);
         Size::observe(SizeObserver::class);
         Color::observe(ColorObserver::class);
+        Category::observe(CategoryObserver::class);
     }
 
     /**
